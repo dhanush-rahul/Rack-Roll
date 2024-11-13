@@ -5,7 +5,12 @@ async function createLocation(req, res) {
         const location = await locationService.createLocation(req.body);
         res.status(201).json(location);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        if(error.code === 11000){
+            res.status(400).json({ message: 'Location already exists. Please use a different location.' });  
+        }
+        else{
+            res.status(400).json({ message: error.message });
+        }
     }
 }
 

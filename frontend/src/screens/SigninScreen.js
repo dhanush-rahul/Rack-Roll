@@ -12,7 +12,7 @@ const SigninScreen = ({ navigation }) => {
             />
 
             {/* Title */}
-            <Text style={styles.title}>8BallTourney</Text>
+            <Text style={styles.title}>Rack-N-Roll</Text>
             <Text style={styles.subtitle}>Sign in to continue</Text>
 
             {/* Input Fields */}
@@ -25,7 +25,7 @@ const SigninScreen = ({ navigation }) => {
             </TouchableOpacity>
 
             {/* Link to Signup */}
-            <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+            <TouchableOpacity onPress={() => navigation.navigate('CreateAccount')}>
                 <Text style={styles.linkText}>Don't have an account? Sign up</Text>
             </TouchableOpacity>
         </View>
