@@ -1,7 +1,41 @@
-import React from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
+import { signIn } from '../services/api'; // Import sign-in API function
+import AsyncStorage from '@react-native-async-storage/async-storage'; // To store token locally
+import { useNavigation, CommonActions } from '@react-navigation/native';
 
-const SigninScreen = ({ navigation }) => {
+const SigninScreen = ({navigation}) => {
+    // State for email and password
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    // const navigation = useNavigation();
+    const handleSignin = async () => {
+        try {
+            const data = { email, passKey: password };
+            const response = await signIn(data);
+
+            if (response.status === 200) {
+                const { token } = response.data;
+
+                // Store token in AsyncStorage (or any other storage method)
+                await AsyncStorage.setItem('authToken', token);
+
+                Alert.alert('Success', 'Signed in successfully');
+                // Navigate to a protected screen or home screen
+                navigation.dispatch(
+                    CommonActions.reset({
+                        index: 0,
+                        routes: [{ name: 'Tournament' }], // Replace 'Home' with the name of your home screen
+                    })
+                );
+                // navigation.replace('Tournament');
+            }
+        } catch (error) {
+            console.error(error);
+            Alert.alert('Error', error.response?.data?.message || 'Failed to sign in');
+        }
+    };
+
     return (
         <View style={styles.container}>
             {/* Illustration */}
@@ -16,11 +50,23 @@ const SigninScreen = ({ navigation }) => {
             <Text style={styles.subtitle}>Sign in to continue</Text>
 
             {/* Input Fields */}
-            <TextInput style={styles.input} placeholder="Email" keyboardType="email-address" />
-            <TextInput style={styles.input} placeholder="Password" secureTextEntry={true} />
+            <TextInput
+                style={styles.input}
+                placeholder="Email"
+                keyboardType="email-address"
+                value={email}
+                onChangeText={setEmail}
+            />
+            <TextInput
+                style={styles.input}
+                placeholder="Password"
+                secureTextEntry={true}
+                value={password}
+                onChangeText={setPassword}
+            />
 
             {/* Signin Button */}
-            <TouchableOpacity style={styles.button} onPress={() => {/* Handle Signin Logic */}}>
+            <TouchableOpacity style={styles.button} onPress={handleSignin}>
                 <Text style={styles.buttonText}>Sign In</Text>
             </TouchableOpacity>
 
