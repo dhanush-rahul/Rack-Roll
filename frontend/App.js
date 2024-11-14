@@ -7,6 +7,7 @@ import HomePage from './src/screens/HomeScreen';
 import CreateAccountScreen from './src/screens/CreateAccountScreen';
 import TournamentScreen from './src/screens/TournamentScreen';
 import LoadingScreen from './src/screens/LodingScreen';
+import CreateTournamentScreen from './src/screens/CreateTournamentScreen';
 
 
 const Stack = createNativeStackNavigator();
@@ -35,6 +36,7 @@ export default function App() {
       <Stack.Screen name="Home" component={HomePage} />
       <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />
       <Stack.Screen name="Tournament" component={TournamentScreen} />
+      <Stack.Screen name="CreateTournament" component={CreateTournamentScreen} />
       
   </Stack.Navigator>
 </NavigationContainer>
