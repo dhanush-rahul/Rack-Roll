@@ -20,11 +20,16 @@ async function updateLocation(id, updateData) {
 async function deleteLocation(id) {
     return await Location.findByIdAndDelete(id);
 }
+async function getLocationByEmail(email) {
+    return await Location.findOne({ email });
+}
+
 
 module.exports = {
     createLocation,
     getAllLocations,
     getLocationByCredentials,
     updateLocation,
-    deleteLocation
+    deleteLocation,
+    getLocationByEmail
 };

@@ -1,4 +1,6 @@
 const locationService = require('../services/locationService');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 async function createLocation(req, res) {
     try {
@@ -11,6 +13,33 @@ async function createLocation(req, res) {
         else{
             res.status(400).json({ message: error.message });
         }
+    }
+}
+
+async function signInLocation(req, res) {
+
+    try {
+        const { email, passKey } = req.body;
+        const location = await locationService.getLocationByEmail(email);
+        
+        if (!location) {
+            return res.status(404).json({ message: "Location not found" });
+        }
+
+        // Assuming passwords are hashed, use bcrypt to compare
+        // const isPasswordValid = await bcrypt.compare(password, location.passKey);
+        // if (!isPasswordValid) {
+        //     return res.status(400).json({ message: "Invalid credentials" });
+        // }
+
+        // Generate JWT token
+        const token = jwt.sign({ id: location._id, email: location.email }, process.env.JWT_SECRET, {
+            expiresIn: '1h', // Token expiry (optional)
+        });
+
+        res.status(200).json({ message: "Sign-in successful", token, locationId: location._id });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 }
 
@@ -58,5 +87,6 @@ module.exports = {
     getAllLocations,
     getLocationByCredentials,
     updateLocation,
-    deleteLocation
+    deleteLocation,
+    signInLocation,
 };

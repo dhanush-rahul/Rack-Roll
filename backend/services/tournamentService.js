@@ -8,7 +8,31 @@ async function createTournament(tournamentData) {
 
 // Get all tournaments
 async function getAllTournaments() {
-    return await Tournament.find();
+    return await Tournament.aggregate([
+        {
+            $lookup: {
+                from: 'divisions', // The collection name for divisions
+                localField: 'divisions',
+                foreignField: '_id',
+                as: 'divisionDetails'
+            }
+        },
+        {
+            $addFields: {
+                divisionCount: { $size: "$divisionDetails" },
+                playerCount: { $sum: { $map: { input: "$divisionDetails", as: "division", in: { $size: "$$division.players" } } } }
+            }
+        },
+        {
+            $project: {
+                name: 1,
+                date: 1,
+                location: 1,
+                divisionCount: 1,
+                playerCount: 1
+            }
+        }
+    ]);
 }
 
 // Get a specific tournament by ID
