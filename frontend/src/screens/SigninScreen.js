@@ -15,11 +15,11 @@ const SigninScreen = ({navigation}) => {
             const response = await signIn(data);
 
             if (response.status === 200) {
-                const { token } = response.data;
+                const { token, locationId } = response.data;
 
                 // Store token in AsyncStorage (or any other storage method)
                 await AsyncStorage.setItem('authToken', token);
-
+                await AsyncStorage.setItem('locationId', locationId);
                 Alert.alert('Success', 'Signed in successfully');
                 // Navigate to a protected screen or home screen
                 navigation.dispatch(
