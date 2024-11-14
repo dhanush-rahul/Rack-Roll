@@ -1,86 +1,59 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import Autocomplete from 'react-native-autocomplete-input';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createTournament, getLocationTournamentCount, searchLocations } from '../services/api';
+import React, { useState } from 'react';
+import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 
-const CreateTournamentScreen = ({ navigation }) => {
-    const [name, setName] = useState('');
-    const [date, setDate] = useState(new Date());
-    const [showDatePicker, setShowDatePicker] = useState(false);
-    const [location, setLocation] = useState('');
-    const [locationSuggestions, setLocationSuggestions] = useState([]);
-    const [query, setQuery] = useState('');
 
-    useEffect(() => {
-        fetchLocationTournamentCount();
-    }, []);
+const AddTournamentScreen = ({ navigation }) => {
+    const [numPlayers, setNumPlayers] = useState('');
+    const [numDivisions, setNumDivisions] = useState(2);
+    const [numGames, setNumGames] = useState(1);
 
-    const fetchLocationTournamentCount = async () => {
-        try {
-            const locationId = await AsyncStorage.getItem('locationId');
-            if (!locationId) throw new Error("Location ID not found");
-
-            const tournamentCount = await getLocationTournamentCount(locationId);
-            setName(`Tournament #${tournamentCount + 1}`);
-        } catch (error) {
-            console.error('Error fetching location-specific tournament count:', error);
+    const handleProceed = () => {
+        if (!numPlayers || !numDivisions || !numGames) {
+            Alert.alert("Error", "Please fill in all fields");
+            return;
         }
+        // Navigate to the Add Players screen with tournament settings as params
+        navigation.navigate('AddPlayers', { numPlayers, numDivisions, numGames });
     };
-
-    const handleCreateTournament = async () => {
-        try {
-            const locationId = await AsyncStorage.getItem('locationId');
-            const data = { name, date, locationId };
-            await createTournament(data);
-
-            Alert.alert('Success', 'Tournament created successfully');
-            navigation.goBack(); // Navigate back to TournamentsScreen
-        } catch (error) {
-            console.error('Error creating tournament:', error);
-            Alert.alert('Error', 'Failed to create tournament');
-        }
-    };
-
-    const handleDateChange = (event, selectedDate) => {
-        const currentDate = selectedDate || date;
-        setShowDatePicker(false);
-        setDate(currentDate);
-    };
-
 
     return (
         <View style={styles.container}>
-            <Text style={styles.label}>Tournament Name</Text>
+            <Text style={styles.label}>Number of Players</Text>
             <TextInput
                 style={styles.input}
-                value={name}
-                onChangeText={setName}
+                value={numPlayers}
+                onChangeText={setNumPlayers}
+                keyboardType="numeric"
+                placeholder="Enter number of players"
             />
 
-            <Text style={styles.label}>Date</Text>
-            <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.input}>
-                <Text>{date ? date.toDateString() : 'Select Date'}</Text>
-            </TouchableOpacity>
-            {showDatePicker && (
-                <DateTimePicker
-                    value={date}
-                    mode="date"
-                    display="default"
-                    onChange={handleDateChange}
-                />
-            )}
+            <Text style={styles.label}>Number of Divisions</Text>
+            <Picker
+                selectedValue={numDivisions}
+                style={styles.input}
+                onValueChange={(itemValue) => setNumDivisions(itemValue)}
+            >
+                <Picker.Item label="2" value={2} />
+                <Picker.Item label="3" value={3} />
+                <Picker.Item label="4" value={4} />
+            </Picker>
 
-            
+            <Text style={styles.label}>Number of Games Played Between 2 Players</Text>
+            <TextInput
+                style={styles.input}
+                value={numGames}
+                onChangeText={setNumGames}
+                keyboardType="numeric"
+                placeholder="Enter number of games"
+            />
 
-            <Button title="Create Tournament" onPress={handleCreateTournament} color="#4CAF50" />
+            <Button title="Proceed to Add Players" onPress={handleProceed} color="#4CAF50" />
         </View>
     );
 };
 
-export default CreateTournamentScreen;
+export default AddTournamentScreen;
 
 const styles = StyleSheet.create({
     container: {
@@ -99,16 +72,4 @@ const styles = StyleSheet.create({
         padding: 10,
         marginBottom: 15,
     },
-    suggestion: {
-        padding: 10,
-        fontSize: 16,
-        color: '#333',
-    },
-    autocompleteContainer: {
-        marginBottom: 15,
-    },
-    inputContainer: {
-        borderWidth: 0,
-    },
 });
-

@@ -34,5 +34,25 @@ export const getPlayers = async () => {
     return response.data;
 };
 
+export const searchLocations = async (query) => {
+    const response = await api.get(`/locations/search?query=${query}`);
+    return response.data;
+};
 
+// Add a player to a specific tournament
+export const addPlayerToTournament = async (tournamentId, playerId) => {
+    return await api.post(`/tournaments/${tournamentId}/players`, { playerId });
+};
+
+// Search players by name
+export const searchPlayers = async (query) => {
+    const response = await api.get(`/players/search?query=${query}`);
+    return response.data;
+};
+
+// Create a new player
+export const createPlayer = async (playerData) => {
+    const response = await api.post('/players', playerData);
+    return response.data;
+};
 export default api;
