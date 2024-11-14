@@ -7,6 +7,9 @@ const api = axios.create({
 export const createAccount = async (data) => {
     return await api.post('/locations/', data);
 };
+export const signIn = async (data) => {
+    return await api.post('/locations/signin', data); // Endpoint for sign-in
+};
 
 
 export const getTournaments = async () => {
