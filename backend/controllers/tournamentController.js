@@ -1,5 +1,6 @@
 const Tournament = require('../models/Tournament');
 const tournamentService = require('../services/tournamentService');
+const Player = require('../models/Player');
 
 // Handle creating a new tournament
 async function createTournament(req, res) {
@@ -75,11 +76,40 @@ async function getLocationTournamentCount(req, res) {
     }
 }
 
+// Add a player to a specific tournament
+async function addPlayerToTournament(req, res) {
+    try {
+        const { tournamentId } = req.params;
+        const { playerId } = req.body;
+
+        // Find the tournament
+        const tournament = await Tournament.findById(tournamentId);
+        if (!tournament) {
+            return res.status(404).json({ message: 'Tournament not found' });
+        }
+
+        // Check if player already exists in the tournament
+        if (tournament.players.includes(playerId)) {
+            return res.status(400).json({ message: 'Player already added to this tournament' });
+        }
+
+        // Add the player to the tournament
+        tournament.players.push(playerId);
+        await tournament.save();
+
+        res.status(200).json({ message: 'Player added to tournament successfully', tournament });
+    } catch (error) {
+        console.error('Error adding player to tournament:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+
 module.exports = {
     createTournament,
     getAllTournaments,
     getTournamentById,
     updateTournament,
     deleteTournament,
-    getLocationTournamentCount
+    getLocationTournamentCount,
+    addPlayerToTournament
 };

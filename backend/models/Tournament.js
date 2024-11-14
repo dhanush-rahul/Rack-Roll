@@ -6,6 +6,7 @@ const tournamentSchema = new Schema({
     divisions: [{ type: Schema.Types.ObjectId, ref: 'Division' }],
     date: { type: Date, required: true },
     locationId: { type: Schema.Types.ObjectId, ref: 'Location', required: true }, // Reference to the location conducting the tournament
+    players: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Player' }],
 });
 
 module.exports = mongoose.model('Tournament', tournamentSchema);

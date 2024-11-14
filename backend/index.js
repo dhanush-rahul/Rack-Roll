@@ -31,11 +31,13 @@ app.use('/api/divisions', divisionRoutes);
 app.use('/api/games', gameRoutes);
 app.use('/api/leaderboards', leaderboardRoutes);
 app.use('/api/locations', locationRoutes);
-app.use('/api/players', playerRoutes);
+app.use('/api/players', (req, res, next) => {
+    console.log("Request received at /api/players route"); // This should log whenever /api/players route is hit
+    next();
+}, playerRoutes);
 app.use('/api/scoresheets', scoresheetRoutes);
 
 // Basic route
-app.get("/", (req, res) => res.send("Tournament API"));
 
 // Start server
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
