@@ -1,3 +1,4 @@
+const Tournament = require('../models/Tournament');
 const tournamentService = require('../services/tournamentService');
 
 // Handle creating a new tournament
@@ -58,11 +59,27 @@ async function deleteTournament(req, res) {
         res.status(500).json({ message: error.message });
     }
 }
+async function getLocationTournamentCount(req, res) {
+    try {
+        const locationId = req.params.locationId;
+
+        // Count documents for the provided valid locationId
+        const count = await Tournament.countDocuments({ locationId });
+        console.log("Tournament count for locationId:", locationId, "is", count);
+
+        // Return count, explicitly setting it to 0 if there are no results
+        return res.status(200).json({ count: count || 0 });
+    } catch (error) {
+        console.error("Error in getLocationTournamentCount:", error.message);
+        res.status(500).json({ message: error.message });
+    }
+}
 
 module.exports = {
     createTournament,
     getAllTournaments,
     getTournamentById,
     updateTournament,
-    deleteTournament
+    deleteTournament,
+    getLocationTournamentCount
 };
