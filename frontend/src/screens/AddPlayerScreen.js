@@ -3,7 +3,7 @@ import { View, Text, TextInput, Button, StyleSheet, TouchableWithoutFeedback, To
 import Autocomplete from 'react-native-autocomplete-input';
 import { addPlayerToTournament, searchPlayers, createPlayer } from '../services/api';
 
-const AddPlayersScreen = ({ route, navigation }) => {
+const AddPlayerScreen = ({ route, navigation }) => {
     const { numPlayers, numDivisions, numGames } = route.params;
     const [playerName, setPlayerName] = useState('');
     const [playerSuggestions, setPlayerSuggestions] = useState([]);
@@ -64,17 +64,17 @@ const AddPlayersScreen = ({ route, navigation }) => {
     };
 
     const handleProceedToScoresheet = () => {
-        if (selectedPlayers.length !== parseInt(numPlayers)) {
-            Alert.alert("Error", "Please add the correct number of players");
-            return;
-        }
+        // if (selectedPlayers.length !== parseInt(numPlayers)) {
+        //     Alert.alert("Error", "Please add the correct number of players");
+        //     return;
+        // }
 
-        if (shuffle) {
-            const shuffledPlayers = shufflePlayers(selectedPlayers, numDivisions);
-            navigation.navigate('Scoresheet', { players: shuffledPlayers });
-        } else {
-            navigation.navigate('ManualDivisionSetup', { players: selectedPlayers, numDivisions });
-        }
+        // if (shuffle) {
+            // const shuffledPlayers = shufflePlayers(selectedPlayers, numDivisions);
+            navigation.navigate('Scoresheet', { players: selectedPlayers, numDivisions: numDivisions});
+        // } else {
+        //     navigation.navigate('ManualDivisionSetup', { players: selectedPlayers, numDivisions });
+        // }
     };
 
     return (
@@ -152,7 +152,7 @@ const AddPlayersScreen = ({ route, navigation }) => {
                     title="Proceed to Scoresheet"
                     onPress={handleProceedToScoresheet}
                     color="#4CAF50"
-                    disabled={selectedPlayers.length !== parseInt(numPlayers)}
+                    // disabled={selectedPlayers.length !== parseInt(numPlayers)}
                 />
             </View>
 
@@ -176,7 +176,7 @@ const AddPlayersScreen = ({ route, navigation }) => {
     );
 };
 
-export default AddPlayersScreen;
+export default AddPlayerScreen;
 
 const styles = StyleSheet.create({
     container: {

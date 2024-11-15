@@ -8,7 +8,8 @@ import CreateAccountScreen from './src/screens/CreateAccountScreen';
 import TournamentScreen from './src/screens/TournamentScreen';
 import LoadingScreen from './src/screens/LodingScreen';
 import CreateTournamentScreen from './src/screens/CreateTournamentScreen';
-import AddPlayersScreen from './src/screens/AddPlayerScreen';
+import Scoresheet from './src/screens/Scoresheet';
+import AddPlayerScreen from './src/screens/AddPlayerScreen';
 
 
 const Stack = createNativeStackNavigator();
@@ -38,7 +39,8 @@ export default function App() {
       <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />
       <Stack.Screen name="Tournament" component={TournamentScreen} />
       <Stack.Screen name="CreateTournament" component={CreateTournamentScreen} />
-      <Stack.Screen name="AddPlayers" component={AddPlayersScreen} />
+      <Stack.Screen name="AddPlayers" component={AddPlayerScreen} />
+      <Stack.Screen name="Scoresheet" component={Scoresheet} />
   </Stack.Navigator>
 </NavigationContainer>
   );
