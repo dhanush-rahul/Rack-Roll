@@ -1,8 +1,11 @@
 const Tournament = require('../models/Tournament');
 const tournamentService = require('../services/tournamentService');
 const Player = require('../models/Player');
+const gameService = require('../services/gameService');
+const divisionService = require('../services/divisionService');
+const Location = require('../models/Location');
+const Game = require('../models/Game');
 
-// Handle creating a new tournament
 async function createTournament(req, res) {
     try {
         const tournament = await tournamentService.createTournament(req.body);
@@ -12,7 +15,6 @@ async function createTournament(req, res) {
     }
 }
 
-// Handle fetching all tournaments
 async function getAllTournaments(req, res) {
     try {
         const tournaments = await tournamentService.getAllTournaments();
@@ -22,7 +24,19 @@ async function getAllTournaments(req, res) {
     }
 }
 
-// Handle fetching a single tournament by ID
+async function getTournamentsByLocation(req, res) {
+    try {
+        const { locationId } = req.params;
+        const tournaments = await tournamentService.getTournamentsByLocationId(locationId);
+        if (!tournaments || tournaments.length === 0) {
+            return res.status(404).json({ message: "No tournaments found for this location." });
+        }
+        res.status(200).json(tournaments);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
 async function getTournamentById(req, res) {
     try {
         const tournament = await tournamentService.getTournamentById(req.params.id);
@@ -35,7 +49,6 @@ async function getTournamentById(req, res) {
     }
 }
 
-// Handle updating a tournament
 async function updateTournament(req, res) {
     try {
         const tournament = await tournamentService.updateTournament(req.params.id, req.body);
@@ -48,7 +61,6 @@ async function updateTournament(req, res) {
     }
 }
 
-// Handle deleting a tournament
 async function deleteTournament(req, res) {
     try {
         const tournament = await tournamentService.deleteTournament(req.params.id);
@@ -60,46 +72,204 @@ async function deleteTournament(req, res) {
         res.status(500).json({ message: error.message });
     }
 }
+
 async function getLocationTournamentCount(req, res) {
     try {
         const locationId = req.params.locationId;
-
-        // Count documents for the provided valid locationId
         const count = await Tournament.countDocuments({ locationId });
-        console.log("Tournament count for locationId:", locationId, "is", count);
-
-        // Return count, explicitly setting it to 0 if there are no results
         return res.status(200).json({ count: count || 0 });
     } catch (error) {
-        console.error("Error in getLocationTournamentCount:", error.message);
         res.status(500).json({ message: error.message });
     }
 }
 
-// Add a player to a specific tournament
 async function addPlayerToTournament(req, res) {
     try {
         const { tournamentId } = req.params;
         const { playerId } = req.body;
-
-        // Find the tournament
         const tournament = await Tournament.findById(tournamentId);
         if (!tournament) {
             return res.status(404).json({ message: 'Tournament not found' });
         }
-
-        // Check if player already exists in the tournament
         if (tournament.players.includes(playerId)) {
             return res.status(400).json({ message: 'Player already added to this tournament' });
         }
-
-        // Add the player to the tournament
         tournament.players.push(playerId);
         await tournament.save();
-
         res.status(200).json({ message: 'Player added to tournament successfully', tournament });
     } catch (error) {
-        console.error('Error adding player to tournament:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+async function createTournamentWithGames(req, res) {
+    try {
+        const { players, numDivisions, numGames, tournamentName, locationId } = req.body;
+        const result = await tournamentService.countTournamentsByLocationId(locationId);
+        const tournamentCount = result.length > 0 ? result[0].tournamentCount : 0;
+        const name = `${tournamentName} ${tournamentCount + 1}`;
+        const newTournament = await tournamentService.createTournament({
+            tournamentName: name,
+            date: new Date(),
+            locationId,
+            players,
+            numDivisions,
+            numGamesPerMatchup: numGames,
+        });
+        const divisionSize = Math.ceil(players.length / numDivisions);
+        const divisionIds = [];
+        const allGames = [];
+        const allByes = [];
+
+        for (let i = 0; i < numDivisions; i++) {
+            const divisionPlayers = players.slice(i * divisionSize, (i + 1) * divisionSize);
+            const division = await divisionService.createDivision({
+                name: `Division ${i + 1}`,
+                players: divisionPlayers,
+                tournamentId: newTournament._id,
+            });
+            divisionIds.push(division._id);
+            const { games: divisionGames, byes } = generateRoundRobinGames(
+                divisionPlayers,
+                numGames,
+                division._id,
+                newTournament._id
+            );
+            allGames.push(...divisionGames);
+            allByes.push(...byes);
+        }
+        const crossoverGames = generateCrossoverMatches(allByes, numGames, newTournament._id);
+        allGames.push(...crossoverGames);
+        newTournament.divisions = divisionIds;
+        const savedGames = await gameService.createGames(allGames);
+
+        newTournament.games = savedGames.map((game) => game._id);
+        await newTournament.save();
+        const location = await Location.findById(locationId);
+        if (!location) throw new Error('Location not found');
+        location.tournaments.push(newTournament._id);
+        await location.save();
+        res.status(201).json({ message: 'Tournament and games created successfully!' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+function generateRoundRobinGames(players, numGames, divisionId, tournamentId) {
+    const games = [];
+    const byes = [];
+    let numPlayers = players.length;
+    let isAddedBye = false;
+    if (numPlayers % 2 !== 0) {
+        players.push({ name: 'Bye', _id: 'bye' });
+        numPlayers += 1;
+        isAddedBye = true;
+    }
+    const totalRounds = numPlayers - 1;
+    const halfSize = numPlayers / 2;
+    for (let round = 0; round < totalRounds; round++) {
+        for (let i = 0; i < halfSize; i++) {
+            const firstPlayerIndex = (round + i) % (numPlayers - 1);
+            let secondPlayerIndex = (numPlayers - 1 - i + round) % (numPlayers - 1);
+            if (i === 0) {
+                secondPlayerIndex = numPlayers - 1;
+            }
+            const player1 = players[firstPlayerIndex];
+            const player2 = players[secondPlayerIndex];
+            if (player1._id === 'bye' || player2._id === 'bye') {
+                const byePlayer = player1._id === 'bye' ? player2._id : player1._id;
+                byes.push({ round: round + 1, playerId: byePlayer, divisionId });
+                continue;
+            }
+            for (let gameIndex = 0; gameIndex < numGames; gameIndex++) {
+                games.push({
+                    player1: player1._id,
+                    player2: player2._id,
+                    scores: [],
+                    round: round + 1,
+                    division: divisionId,
+                    tournamentId: tournamentId,
+                    isCrossover: false
+                });
+            }
+        }
+    }
+    if (isAddedBye) {
+        players.pop();
+    }
+    return { games, byes };
+}
+
+function generateCrossoverMatches(allByes, numGames, tournamentId) {
+    const crossoverGames = [];
+    const byesByRound = allByes.reduce((acc, b) => {
+        if (!acc[b.round]) acc[b.round] = [];
+        acc[b.round].push(b);
+        return acc;
+    }, {});
+    for (const roundStr in byesByRound) {
+        const round = parseInt(roundStr, 10);
+        const roundByes = byesByRound[round];
+        while (roundByes.length > 1) {
+            const bye1 = roundByes.pop();
+            let pairIndex = roundByes.findIndex(b => b.divisionId !== bye1.divisionId);
+            if (pairIndex === -1) {
+                roundByes.push(bye1);
+                break;
+            }
+            const bye2 = roundByes.splice(pairIndex, 1)[0];
+            for (let gameIndex = 0; gameIndex < numGames; gameIndex++) {
+                crossoverGames.push({
+                    player1: bye1.playerId,
+                    player2: bye2.playerId,
+                    scores: [],
+                    round: round,
+                    division: null,
+                    tournamentId: tournamentId,
+                    isCrossover: true
+                });
+            }
+        }
+    }
+    return crossoverGames;
+}
+
+async function getScoresheet(req, res) {
+    try {
+        const { tournamentId } = req.params;
+        const games = await gameService.getGamesByTournament(tournamentId);
+        const rounds = {};
+        games.forEach((game) => {
+            if (!rounds[game.round]) rounds[game.round] = [];
+            rounds[game.round].push({
+                player1: game.player1,
+                player2: game.player2,
+                scores: game.scores,
+            });
+        });
+        res.status(200).json(Object.values(rounds));
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+async function getTournamentDetails(req, res) {
+    try {
+        const { id } = req.params;
+        const tournament = await Tournament.findById(id)
+            .populate('players')
+            .populate('games')
+            .populate({
+                path: 'divisions',
+                populate: {
+                    path: 'players',
+                },
+            });
+        if (!tournament) {
+            return res.status(404).json({ message: 'Tournament not found' });
+        }
+        res.status(200).json(tournament);
+    } catch (error) {
         res.status(500).json({ message: error.message });
     }
 }
@@ -111,5 +281,9 @@ module.exports = {
     updateTournament,
     deleteTournament,
     getLocationTournamentCount,
-    addPlayerToTournament
+    addPlayerToTournament,
+    getScoresheet,
+    createTournamentWithGames,
+    getTournamentDetails,
+    getTournamentsByLocation
 };

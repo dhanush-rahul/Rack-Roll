@@ -8,6 +8,9 @@ async function createLeaderboard(data) {
 async function getAllLeaderboards() {
     return await Leaderboard.find().populate('division');
 }
+async function getLeaderboard(tournamentId, divisionId){
+    return await Leaderboard.findOne({tournamentId, division: divisionId });
+}
 
 async function getLeaderboardById(id) {
     return await Leaderboard.findById(id).populate('division');
@@ -26,5 +29,6 @@ module.exports = {
     getAllLeaderboards,
     getLeaderboardById,
     updateLeaderboard,
-    deleteLeaderboard
+    deleteLeaderboard,
+    getLeaderboard
 };

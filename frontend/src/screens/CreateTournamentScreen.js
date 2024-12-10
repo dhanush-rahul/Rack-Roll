@@ -48,7 +48,7 @@ const AddTournamentScreen = ({ navigation }) => {
                 placeholder="Enter number of games"
             />
 
-            <Button title="Proceed to Add Players" onPress={handleProceed} color="#4CAF50" />
+            <Button title="Proceed to Add Players" onPress={handleProceed} color="#83c985" />
         </View>
     );
 };

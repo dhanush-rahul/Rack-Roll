@@ -22,6 +22,7 @@ const SigninScreen = ({navigation}) => {
                 await AsyncStorage.setItem('locationId', locationId);
                 Alert.alert('Success', 'Signed in successfully');
                 // Navigate to a protected screen or home screen
+                
                 navigation.dispatch(
                     CommonActions.reset({
                         index: 0,
@@ -85,12 +86,12 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#e8f7fa',
         padding: 20,
     },
     image: {
-        width: 120,
-        height: 120,
+        width: '100%',
+        height: '40%',
         marginBottom: 20,
     },
     title: {
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
     },
     button: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#83c985',
         width: '100%',
         paddingVertical: 12,
         borderRadius: 5,

@@ -35,16 +35,10 @@ const CreateAccountScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            {/* Illustration */}
-            <Image
-                source={require('../../assets/download.jpeg')} // Replace with the path to your image
-                style={styles.image}
-                resizeMode="contain"
-            />
+           
 
             {/* Title */}
             <Text style={styles.title}>Rack-N-Roll</Text>
-            <Text style={styles.subtitle}>Join now for exciting pool tournaments!</Text>
 
             {/* Input Fields */}
             <TextInput
@@ -76,7 +70,7 @@ const CreateAccountScreen = ({ navigation }) => {
 
             {/* Signup Button */}
             <TouchableOpacity style={styles.button} onPress={handleSignup}>
-                <Text style={styles.buttonText}>Enter</Text>
+                <Text style={styles.buttonText}>Register</Text>
             </TouchableOpacity>
         </View>
     );
@@ -89,7 +83,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#e8f7fa',
         padding: 20,
     },
     image: {
@@ -102,6 +96,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
         textAlign: 'center',
+        top: -20,
         marginTop: 10,
     },
     subtitle: {
@@ -121,7 +116,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
     },
     button: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#83c985',
         width: '100%',
         paddingVertical: 12,
         borderRadius: 5,

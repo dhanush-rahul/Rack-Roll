@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 
-const HomePage = ({ navigation }) => {
+const HomeScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>
             {/* Illustration */}
@@ -19,30 +19,30 @@ const HomePage = ({ navigation }) => {
 
             {/* Buttons */}
             <View style={styles.buttonContainer}>
-                <TouchableOpacity style={styles.signInButton} onPress={() => navigation.navigate('SignIn')}>
+                <TouchableOpacity style={styles.signInButton} onPress={() => navigation.navigate('Signin')}>
                     <Text style={styles.buttonText}>Sign in</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.createAccountButton} onPress={() => navigation.navigate('CreateAccount')}>
-                    <Text style={styles.createAccountText}>Create account</Text>
+                    <Text style={styles.createAccountText}>Register</Text>
                 </TouchableOpacity>
-            </View>
+            </View> 
 
             {/* Explore as Visitor */}
-            <TouchableOpacity onPress={() => navigation.navigate('ExploreVisitor')}>
+            {/* <TouchableOpacity onPress={() => navigation.navigate('ExploreVisitor')}>
                 <Text style={styles.exploreText}>Explore features as a visitor</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
         </View>
     );
 };
 
-export default HomePage;
+export default HomeScreen;
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#e8f7fa',
         padding: 20,
     },
     image: {
@@ -68,6 +68,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         width: '100%',
         marginBottom: 20,
+        position: 'relative',
     },
     signInButton: {
         backgroundColor: '#333',
@@ -77,9 +78,10 @@ const styles = StyleSheet.create({
         marginRight: 10,
         flex: 1,
         alignItems: 'center',
+        verticalAlign: 'middle', 
     },
     createAccountButton: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#83c985',
         paddingVertical: 12,
         paddingHorizontal: 25,
         borderRadius: 5,

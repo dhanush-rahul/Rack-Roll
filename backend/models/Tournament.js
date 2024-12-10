@@ -2,11 +2,14 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const tournamentSchema = new Schema({
-    name: { type: String, required: true },
-    divisions: [{ type: Schema.Types.ObjectId, ref: 'Division' }],
-    date: { type: Date, required: true },
+    tournamentName: { type: String, required: true },
+    date: { type: Date, required: true, default: Date.now }, // Add default value for the date
     locationId: { type: Schema.Types.ObjectId, ref: 'Location', required: true }, // Reference to the location conducting the tournament
-    players: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Player' }],
+    players: [{ type: Schema.Types.ObjectId, ref: 'Player' }], // Store participating players
+    games: [{ type: Schema.Types.ObjectId, ref: 'Game' }], // Add a reference to the `Game` model for the tournament's games
+    divisions: [{ type: Schema.Types.ObjectId, ref: 'Division' }], // Reference to divisions
+    numDivisions: { type: Number, required: true }, // Store the number of divisions directly
+    numGamesPerMatchup: { type: Number, required: true }, // Store the number of games to be played for each matchup
 });
 
 module.exports = mongoose.model('Tournament', tournamentSchema);

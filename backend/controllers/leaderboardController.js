@@ -1,3 +1,4 @@
+const Leaderboard = require('../models/Leaderboard');
 const leaderboardService = require('../services/leaderboardService');
 
 async function createLeaderboard(req, res) {
@@ -18,15 +19,20 @@ async function getAllLeaderboards(req, res) {
     }
 }
 
-async function getLeaderboardById(req, res) {
+const getLeaderboard = async (req, res) => {
+    const { tournamentId, divisionId } = req.params;
     try {
-        const leaderboard = await leaderboardService.getLeaderboardById(req.params.id);
-        if (!leaderboard) return res.status(404).json({ message: "Leaderboard not found" });
-        res.status(200).json(leaderboard);
+      const leaderboard = await leaderboardService.getLeaderboard(tournamentId, divisionId);
+      if (!leaderboard) {
+        return res.status(404).json({ message: 'Leaderboard not found' });
+      }
+  
+      res.status(200).json(leaderboard);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+      console.error('Error fetching leaderboard:', error);
+      res.status(500).json({ message: 'Server error' });
     }
-}
+  };
 
 async function updateLeaderboard(req, res) {
     try {
@@ -51,7 +57,7 @@ async function deleteLeaderboard(req, res) {
 module.exports = {
     createLeaderboard,
     getAllLeaderboards,
-    getLeaderboardById,
+    getLeaderboard,
     updateLeaderboard,
     deleteLeaderboard
 };

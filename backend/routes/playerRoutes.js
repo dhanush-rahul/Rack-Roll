@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const playerController = require('../controllers/playerController');
 
+router.get('/location', playerController.getPlayersByLocation);
 router.get('/search', playerController.searchPlayers);
 router.post('/', playerController.createPlayer);
 router.get('/', playerController.getAllPlayers);

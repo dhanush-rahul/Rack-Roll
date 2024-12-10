@@ -10,7 +10,7 @@ import AddPlayerScreen from '../screens/AddPlayerScreen';
 
 const AppNavigator = createStackNavigator(
     {
-        Home: HomeScreen,
+        HomeScreen: HomeScreen,
         SignIn: SigninScreen,
         CreateAccount: CreateAccountScreen,
         Tournament: TournamentScreen,
@@ -19,7 +19,7 @@ const AppNavigator = createStackNavigator(
         Scoresheet: Scoresheet,
     },
     {
-        initialRouteName: 'Home',
+        initialRouteName: 'HomeScreen',
     }
 );
 

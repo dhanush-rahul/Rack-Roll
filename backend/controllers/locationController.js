@@ -21,16 +21,16 @@ async function signInLocation(req, res) {
     try {
         const { email, passKey } = req.body;
         const location = await locationService.getLocationByEmail(email);
-        
         if (!location) {
             return res.status(404).json({ message: "Location not found" });
         }
 
         // Assuming passwords are hashed, use bcrypt to compare
-        // const isPasswordValid = await bcrypt.compare(password, location.passKey);
-        // if (!isPasswordValid) {
-        //     return res.status(400).json({ message: "Invalid credentials" });
-        // }
+        const isPasswordValid = passKey.toString() === location.passKey
+        //  bcrypt.compare(password, location.passKey);
+        if (!isPasswordValid) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
 
         // Generate JWT token
         const token = jwt.sign({ id: location._id, email: location.email }, process.env.JWT_SECRET, {

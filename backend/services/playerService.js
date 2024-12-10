@@ -1,3 +1,4 @@
+const Division = require('../models/Division');
 const Player = require('../models/Player');
 
 async function createPlayer(data) {
@@ -20,11 +21,19 @@ async function updatePlayer(id, updateData) {
 async function deletePlayer(id) {
     return await Player.findByIdAndDelete(id);
 }
+async function getPlayerDivision(playerId, tournamentId) {
+    const division = await Division.findOne({
+        players: playerId,
+        tournamentId: tournamentId,
+    }).select("_id");
 
+    return division ? division._id : null;
+}
 module.exports = {
     createPlayer,
     getAllPlayers,
     getPlayerById,
     updatePlayer,
-    deletePlayer
+    deletePlayer,
+    getPlayerDivision
 };
