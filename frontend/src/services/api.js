@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Alert } from 'react-native';
 
 const api = axios.create({
-    baseURL: 'https://35.183.246.233/api', // Replace with your backend URL
+    baseURL: 'https://api.dhanushcharipally/api', // Replace with your backend URL
     headers:{
         'Content-Type': 'application/json',
     }
