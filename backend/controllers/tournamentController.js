@@ -273,6 +273,90 @@ async function getTournamentDetails(req, res) {
         res.status(500).json({ message: error.message });
     }
 }
+async function addRound(req, res) {
+    try {
+        const { tournamentId } = req.params;
+        const { divisionId, isCrossover } = req.body;
+
+        // Fetch the tournament details
+        const tournament = await Tournament.findById(tournamentId)
+            .populate('divisions')
+            .populate('games');
+
+        if (!tournament) {
+            return res.status(404).json({ message: 'Tournament not found' });
+        }
+
+        // Determine if this is a crossover or division-specific update
+        // const isCrossover = divisionId === null || divisionId === undefined;
+
+        // Fetch games for the specified division or all divisions
+        const gamesToUpdate = tournament.games.filter((game) => {
+            return isCrossover ? true : game.division?.toString() === divisionId;
+        });
+
+        if (!gamesToUpdate.length) {
+            return res.status(404).json({ message: 'No games found to update.' });
+        }
+
+        const newGames = [];
+        const groupedGames = {};
+
+        // Group games by round and player matchup
+        gamesToUpdate.forEach((game) => {
+            const roundKey = `round-${game.round}`;
+            const matchupKey = [game.player1, game.player2].sort().join('-');
+            if (!groupedGames[roundKey]) {
+                groupedGames[roundKey] = {};
+            }
+            if (!groupedGames[roundKey][matchupKey]) {
+                groupedGames[roundKey][matchupKey] = [];
+            }
+            groupedGames[roundKey][matchupKey].push(game);
+        });
+
+        // Add one game per matchup in the same round
+        for (const roundKey in groupedGames) {
+            const matchups = groupedGames[roundKey];
+            for (const matchupKey in matchups) {
+                const games = matchups[matchupKey];
+                const firstGame = games[0]; // Get details from an existing game in the matchup
+                newGames.push({
+                    player1: firstGame.player1,
+                    player2: firstGame.player2,
+                    scores: [], // Initialize with empty scores
+                    round: firstGame.round, // Same round
+                    division: firstGame.division, // Same division
+                    tournamentId: firstGame.tournamentId,
+                    isCrossover: firstGame.isCrossover, // Retain crossover flag
+                });
+            }
+        }
+
+        // Save new games to the database
+        const savedGames = await Game.insertMany(newGames);
+
+        // Update tournament games
+        tournament.games.push(...savedGames.map((game) => game._id));
+        await tournament.save();
+
+        // Respond with the updated tournament details
+        const updatedTournament = await Tournament.findById(tournamentId)
+            .populate('divisions')
+            .populate('games');
+        res.status(200).json({
+            message: 'Additional games added successfully to the existing round.',
+            tournament: updatedTournament,
+        });
+    } catch (error) {
+        console.error('Error adding games to existing round:', error);
+        res.status(500).json({
+            message: 'Failed to add games to the existing round.',
+            error: error.message,
+        });
+    }
+}
+
 
 module.exports = {
     createTournament,
@@ -285,5 +369,6 @@ module.exports = {
     getScoresheet,
     createTournamentWithGames,
     getTournamentDetails,
-    getTournamentsByLocation
+    getTournamentsByLocation,
+    addRound
 };

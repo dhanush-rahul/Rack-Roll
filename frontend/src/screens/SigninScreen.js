@@ -11,7 +11,7 @@ const SigninScreen = ({navigation}) => {
     // const navigation = useNavigation();
     const handleSignin = async () => {
         try {
-            const data = { email, passKey: password };
+            const data = { email: email.toLowerCase(), passKey: password };
             const response = await signIn(data);
 
             if (response.status === 200) {

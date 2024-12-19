@@ -4,6 +4,7 @@ import { Alert } from 'react-native';
 
 const api = axios.create({
     baseURL: 'https://api.dhanushcharipally.com/api', // Replace with your backend URL
+    // baseURL:'http://localhost:5000/api', 
     headers:{
         'Content-Type': 'application/json',
     }
@@ -193,5 +194,16 @@ export const fetchMaxRoundsAPI = async (tournamentId)  => {
     }
 }
 
+export const updateTournamentGames = async ({ tournamentId, divisionId, isCrossover }) => {
+    try{
+    const response = await api.post(`/tournaments/${tournamentId}/add-rounds`,{divisionId, isCrossover})
+    if(response.ok){
+        Alert.alert("Success", "Tournament games updated successfully.");
+    }
+    }
+    catch(error){
+        console.error('Error updating tournament games:', error);
+    }
+}
 
 export default api;

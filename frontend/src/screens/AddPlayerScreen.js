@@ -9,7 +9,7 @@ const AddPlayerScreen = ({ route, navigation }) => {
     const [playerName, setPlayerName] = useState('');
     const [playerSuggestions, setPlayerSuggestions] = useState([]);
     const [selectedPlayers, setSelectedPlayers] = useState([]);
-    const [shuffle, setShuffle] = useState(true);
+    const [shuffle, setShuffle] = useState(false);
     const [showAddPlayerPopup, setShowAddPlayerPopup] = useState(false);
     const [newPlayerHandicap, setNewPlayerHandicap] = useState(0.0);
     const [newPlayerName, setNewPlayerName] = useState('');
@@ -100,19 +100,6 @@ const AddPlayerScreen = ({ route, navigation }) => {
             Alert.alert('Error', 'Failed to create the tournament.');
         }
     };
-    const handleProceedToScoresheet = () => {
-        if (selectedPlayers.length !== parseInt(numPlayers)) {
-            Alert.alert("Error", "Please add the correct number of players");
-            return;
-        }
-
-        if (shuffle) {
-            const shuffledPlayers = shufflePlayers(selectedPlayers, numDivisions);
-            navigation.navigate('Scoresheet', { players: shuffledPlayers, numDivisions, numGames });
-        } else {
-            navigation.navigate('ManualDivisionSetup', { players: selectedPlayers, numDivisions });
-        }
-    };
 
     return (
         <View style={styles.container}>
@@ -141,6 +128,7 @@ const AddPlayerScreen = ({ route, navigation }) => {
                             <TextInput
                                 {...props}
                                 ref={inputRef}
+                                autoFocus
                                 onFocus={() => {
                                     if (inputRef.current) {
                                         inputRef.current.focus();

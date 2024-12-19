@@ -10,7 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { fetchMaxRoundsAPI, getLeaderboardData, getTournamentDetails, updateGameWithId } from '../services/api';
+import { fetchMaxRoundsAPI, getLeaderboardData, getTournamentDetails, updateGameWithId, updateTournamentGames } from '../services/api';
 
 const ScoresheetScreen = ({ route }) => {
   const { tournamentId } = route.params;
@@ -78,8 +78,7 @@ const ScoresheetScreen = ({ route }) => {
       });
       setScores(initialScores);
       setTickDisabled(initialTickDisabled);
-      const anyCrossover = data.games.some(g => g.division === null);
-      setHasCrossover(anyCrossover);
+      setHasCrossover(data.games.some(g => g.division === null));
     } catch (error) {
       setLoading(false);
     }
@@ -141,6 +140,35 @@ const ScoresheetScreen = ({ route }) => {
     return Object.values(groupedGames);
   };
 
+  const handleAddRound = async (divisionId = null) => {
+    const isCrossover = divisionId === null;
+
+    const confirmationMessage = isCrossover
+      ? 'Are you sure you want to add one more round for the tournament?'
+      : 'Are you sure you want to add one more round for this division?';
+
+    Alert.alert('Confirmation', confirmationMessage, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Yes',
+        onPress: async () => {
+          try {
+            await updateTournamentGames({
+              tournamentId,
+              divisionId,
+              isCrossover,
+            });
+            fetchTournamentDetails(); // Refresh tournament details
+            Alert.alert('Success', 'An extra round has been added!');
+          } catch (error) {
+            console.error('Error adding round:', error);
+            Alert.alert('Error', 'Failed to add an extra round.');
+          }
+        },
+      },
+    ]);
+  };
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -189,6 +217,15 @@ const ScoresheetScreen = ({ route }) => {
                       </Text>
                     );
                   })}
+                  {!hasCrossover && (
+                    <TouchableOpacity
+                      onPress={() => handleAddRound(division._id)}
+                    >
+                      <Text style={styles.addRoundText}>
+                        Add an extra round for this division?
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               ))}
             </ScrollView>
@@ -495,6 +532,12 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 5,
   },
+  addRoundText: {
+    fontSize: 16,
+    color: '#007bff',
+    textDecorationLine: 'underline',
+    marginTop: 10,
+  },
   roundsContainer: {
     flex: 2,
     paddingLeft: 10,
@@ -518,7 +561,7 @@ const styles = StyleSheet.create({
     color: '#000',
     fontWeight: 'bold',
   },
-  roundButtonSelectedText:{
+  roundButtonSelectedText: {
     color: '#fff',
   },
   matchupsContainer: {

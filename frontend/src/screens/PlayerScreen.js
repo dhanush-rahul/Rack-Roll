@@ -175,14 +175,21 @@ const PlayerScreen = () => {
                             Handicap
                         </Text>
                         <View style={styles.verticalDivider} />
-                        {Array.from({ length: 10 }).map((_, index) => (
-                            <React.Fragment key={index}>
-                                <Text style={[styles.tableHeader, styles.scoreColumn]}>
-                                    {index + 1}
-                                </Text>
-                                <View style={styles.verticalDivider} />
-                            </React.Fragment>
-                        ))}
+                        {Array.from({ length: 10 }).map((_, colIndex) => (
+                    <React.Fragment key={colIndex}>
+                        <TextInput
+                            style={[
+                                styles.tableCell,
+                                styles.scoreColumn,
+                                styles.scoreInput,
+                            ]}
+                            value={scores[colIndex] !== undefined ? scores[colIndex].toString() : ''}
+                            onChangeText={(value) => handleScoreChange(value, colIndex)}
+                            keyboardType="numeric"
+                        />
+                        <View style={styles.verticalDivider} />
+                    </React.Fragment>
+                ))}
                         <Text style={[styles.tableHeader, styles.newHandicapColumn]}>
                             New Handicap
                         </Text>
@@ -306,5 +313,14 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         paddingVertical: 4,
         paddingHorizontal: 5,
+    },
+    scoreInput: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 5,
+        textAlign: 'center',
+        paddingVertical: 4,
+        paddingHorizontal: 5,
+        width: 50, // Matches the score column width
     },
 });

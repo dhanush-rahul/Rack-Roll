@@ -15,7 +15,7 @@ const CreateAccountScreen = ({ navigation }) => {
             // Form data to send to the backend
             const data = {
                 name: playerName,
-                email,
+                email: email.toLowerCase(),
                 passKey: password,
                 location,
             };

@@ -20,7 +20,7 @@ const TournamentsScreen = () => {
             console.log('Fetched tournaments:', response);
             setTournaments(response);
         } catch (error) {
-            Alert.alert('Error', 'Error fetching tournaments.');
+            // Alert.alert('Error', 'Error fetching tournaments.');
             console.error('Error fetching tournaments:', error);
         }
     };
