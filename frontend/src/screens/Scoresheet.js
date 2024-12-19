@@ -9,6 +9,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  Alert
 } from 'react-native';
 import { fetchMaxRoundsAPI, getLeaderboardData, getTournamentDetails, updateGameWithId, updateTournamentGames } from '../services/api';
 
@@ -52,7 +53,7 @@ const ScoresheetScreen = ({ route }) => {
       const data = await getTournamentDetails(tournamentId);
       setTournament(data);
       setLoading(false);
-      console.log(data?.games);
+      // console.log(data?.games);
       const initialScores = {};
       const initialTickDisabled = {};
       data.games.forEach((game) => {
@@ -91,6 +92,7 @@ const ScoresheetScreen = ({ route }) => {
         const data = await getLeaderboardData(tournamentId, division._id);
         divisionLeaderboards[division._id] = data;
       }
+      // console.log(divisionLeaderboards);
       setLeaderboards(divisionLeaderboards);
     } catch (error) {
     }
@@ -147,27 +149,36 @@ const ScoresheetScreen = ({ route }) => {
       ? 'Are you sure you want to add one more round for the tournament?'
       : 'Are you sure you want to add one more round for this division?';
 
+    // console.log("Sup");
+
+    // Show the alert and handle logic outside the Alert callback
     Alert.alert('Confirmation', confirmationMessage, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Yes',
-        onPress: async () => {
-          try {
-            await updateTournamentGames({
-              tournamentId,
-              divisionId,
-              isCrossover,
-            });
-            fetchTournamentDetails(); // Refresh tournament details
-            Alert.alert('Success', 'An extra round has been added!');
-          } catch (error) {
-            console.error('Error adding round:', error);
-            Alert.alert('Error', 'Failed to add an extra round.');
-          }
+        onPress: () => {
+          // Call the function to add a round outside the alert
+          addRound(divisionId, isCrossover);
         },
       },
     ]);
   };
+
+  const addRound = async (divisionId, isCrossover) => {
+    try {
+      await updateTournamentGames({
+        tournamentId,
+        divisionId,
+        isCrossover,
+      });
+      await fetchTournamentDetails(); // Refresh tournament details
+      Alert.alert('Success', 'An extra round has been added!');
+    } catch (error) {
+      console.error('Error adding round:', error);
+      Alert.alert('Error', 'Failed to add an extra round.');
+    }
+  };
+
 
   if (loading) {
     return (
@@ -203,9 +214,11 @@ const ScoresheetScreen = ({ route }) => {
               keyboardShouldPersistTaps="always"
               showsVerticalScrollIndicator={false}
             >
+              {/* Display divisions */}
               {tournament.divisions.map((division, index) => (
                 <View key={division._id} style={styles.divisionItem}>
                   <Text style={styles.divisionHeader}>Division {index + 1}</Text>
+                  {/* List players in the division */}
                   {division.players.map((playerEntry, playerIndex) => {
                     const player = getPlayerById(playerEntry);
                     return (
@@ -217,17 +230,28 @@ const ScoresheetScreen = ({ route }) => {
                       </Text>
                     );
                   })}
+                  {/* Show "Add Round" button if no crossovers */}
                   {!hasCrossover && (
-                    <TouchableOpacity
-                      onPress={() => handleAddRound(division._id)}
-                    >
+                    <TouchableOpacity onPress={() => handleAddRound(division._id)}>
                       <Text style={styles.addRoundText}>
-                        Add an extra round for this division?
+                        Extra round for this division?
                       </Text>
                     </TouchableOpacity>
                   )}
                 </View>
               ))}
+
+              {/* Show "Add Round" button for crossovers (tournament-wide) */}
+              {hasCrossover && (
+                <View style={styles.divisionItem}>
+                  <Text style={styles.divisionHeader}>Crossover Games</Text>
+                  <TouchableOpacity onPress={() => handleAddRound(null)}>
+                    <Text style={styles.addRoundText}>
+                      Extra round?
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </ScrollView>
           </View>
           <View style={styles.roundsContainer}>
@@ -252,12 +276,15 @@ const ScoresheetScreen = ({ route }) => {
                 </TouchableOpacity>
               ))}
             </ScrollView>
+
+            {/* Matchups display */}
             {selectedRound !== 'Final' ? (
               <ScrollView
                 style={styles.matchupsContainer}
                 keyboardShouldPersistTaps="always"
                 showsVerticalScrollIndicator={false}
               >
+                {/* Division matchups */}
                 {tournament.divisions.map((division, divisionIndex) => (
                   <View key={`division-${division._id}`} style={styles.divisionMatchup}>
                     <Text style={styles.divisionMatchupHeader}>Division {divisionIndex + 1}</Text>
@@ -342,9 +369,11 @@ const ScoresheetScreen = ({ route }) => {
                     })}
                   </View>
                 ))}
+
+                {/* Crossover matchups */}
                 {hasCrossover && (
                   <View style={styles.divisionMatchup}>
-                    <Text style={styles.divisionMatchupHeader}>Crossover</Text>
+                    <Text style={styles.divisionMatchupHeader}>Crossover Games</Text>
                     {getCrossoverGamesByRound(selectedRound).map((group) => {
                       const firstGame = group[0];
                       const player1 = getPlayerById(firstGame?.player1);
@@ -427,52 +456,39 @@ const ScoresheetScreen = ({ route }) => {
                   </View>
                 )}
               </ScrollView>
+
             ) : (
               <ScrollView
                 style={styles.matchupsContainer}
                 keyboardShouldPersistTaps="always"
                 showsVerticalScrollIndicator={false}
               >
-                {tournament.divisions.map((division, divisionIndex) => {
-                  const leaderboard = leaderboards[division._id];
-                  if (!leaderboard) {
-                    return (
-                      <Text key={`division-${division._id}`}>Loading leaderboard...</Text>
-                    );
-                  }
-                  const rankingsArray = Object.entries(leaderboard.rankings || {})
-                    .map(([playerId, score]) => ({ playerId, score }))
-                    .sort((a, b) => b.score - a.score);
-                  if (rankingsArray.length === 0) {
-                    return (
-                      <View key={`division-${division._id}`} style={styles.divisionLeaderboard}>
-                        <Text style={styles.divisionLeaderboardHeader}>
-                          Division {divisionIndex + 1}
-                        </Text>
-                        <Text>No scores submitted yet.</Text>
-                      </View>
-                    );
-                  }
-                  return (
-                    <View key={`division-${division._id}`} style={styles.divisionLeaderboard}>
-                      <Text style={styles.divisionLeaderboardHeader}>
-                        Division {divisionIndex + 1}
-                      </Text>
-                      {rankingsArray.map(({ playerId, score }, index) => {
-                        const player = getPlayerByIdFromString(playerId);
-                        return (
-                          <View key={`leaderboard-${playerId}`} style={styles.leaderboardRow}>
-                            <Text style={styles.leaderboardPosition}>{index + 1}</Text>
-                            <Text style={styles.leaderboardPlayer}>
-                              {player?.name || 'Unknown'}
-                            </Text>
-                            <Text style={styles.leaderboardScore}>{score}</Text>
-                          </View>
-                        );
-                      })}
-                    </View>
-                  );
-                })}
+                <View>
+                  {Object.entries(leaderboards).map(([divisionId, divisionData]) => (
+  <View key={divisionId} style={styles.divisionLeaderboard}>
+    <Text style={styles.divisionLeaderboardHeader}>
+      {tournament.divisions.find(d => d._id === divisionId)?.name || divisionId}
+    </Text>
+    {divisionData.rankings && Object.keys(divisionData.rankings).length > 0 ? (
+      Object.entries(divisionData.rankings)
+        .sort(([, scoreA], [, scoreB]) => scoreB - scoreA) // Sort by score descending
+        .map(([playerId, score], index) => {
+          const player = tournament.players.find(p => p._id === playerId);
+          return (
+            <View key={playerId} style={styles.leaderboardRow}>
+              <Text style={styles.leaderboardPosition}>{index + 1}</Text>
+              <Text style={styles.leaderboardPlayer}>{player?.name || 'Unknown Player'}</Text>
+              <Text style={styles.leaderboardScore}>{score}</Text>
+            </View>
+          );
+        })
+    ) : (
+      <Text style={styles.noDataText}>No leaderboard data available.</Text>
+    )}
+  </View>
+))}
+
+                </View>
               </ScrollView>
             )}
           </View>

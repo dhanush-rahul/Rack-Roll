@@ -4,7 +4,7 @@ import { Alert } from 'react-native';
 
 const api = axios.create({
     baseURL: 'https://api.dhanushcharipally.com/api', // Replace with your backend URL
-    // baseURL:'http://localhost:5000/api', 
+    // baseURL:'http://192.168.2.20:5000/api', 
     headers:{
         'Content-Type': 'application/json',
     }
@@ -59,6 +59,19 @@ export const searchPlayers = async (query) => {
     return response.data;
 };
 
+export const getAllPlayersOfLocation = async (locationId) =>{
+    // console.log(locationId);
+    try{
+        const response = await api.get(`/locations/${locationId}/players`,{params: {locationId}});
+        // console.log(response.data);
+        return response.data;
+    }
+    catch(error){
+        console.error('Error fetching players:', error);
+        throw error;
+    }
+}
+
 // Create a new player
 export const createPlayer = async (playerData) => {
     const response = await api.post('/players', playerData);
@@ -76,6 +89,7 @@ export const createGame = async (gameData) => {
 };
 
 export const addTournament = async (players, numDivisions, numGames) => {
+    // console.log(players);
     const data = {
         players,
         numDivisions,
@@ -105,7 +119,7 @@ export const updateGameWithId = async (gameId, gameIndex, player1Score, player2S
             player1Score,
             player2Score,
         });
-        console.log('Scores:', response.data.game.scores);
+        // console.log('Scores:', response.data.game.scores);
         return response.data;
     } catch (error) {
         console.error(`Error updating game ${gameId}:`, error.response?.data || error.message);
@@ -118,7 +132,7 @@ export const updateGameWithId = async (gameId, gameIndex, player1Score, player2S
 export const getLeaderboardData = async (tournamentId, divisionId) => {
     try {
       const response = await api.get(`/leaderboards/tournament/${tournamentId}/division/${divisionId}`);
-      console.log('Leaderboard Data:', response.data);
+    //   console.log('Leaderboard Data:', response.data);
       return response.data;
     } catch (error) {
       if (error.response && error.response.status === 404) {
@@ -157,7 +171,7 @@ export const fetchPlayersByLocation = async () => {
             params: { locationId },
         });
 
-        console.log('Players:', response.data);
+        // console.log('Players:', response.data);
         return response.data;
     } catch (error) {
         console.error('Error fetching players by location:', error);
@@ -196,7 +210,7 @@ export const fetchMaxRoundsAPI = async (tournamentId)  => {
 
 export const updateTournamentGames = async ({ tournamentId, divisionId, isCrossover }) => {
     try{
-    const response = await api.post(`/tournaments/${tournamentId}/add-rounds`,{divisionId, isCrossover})
+    const response = await api.put(`/tournaments/${tournamentId}/add-rounds`,{divisionId, isCrossover})
     if(response.ok){
         Alert.alert("Success", "Tournament games updated successfully.");
     }

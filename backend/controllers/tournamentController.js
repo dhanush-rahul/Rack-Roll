@@ -103,11 +103,13 @@ async function addPlayerToTournament(req, res) {
 }
 
 async function createTournamentWithGames(req, res) {
+
     try {
         const { players, numDivisions, numGames, tournamentName, locationId } = req.body;
         const result = await tournamentService.countTournamentsByLocationId(locationId);
         const tournamentCount = result.length > 0 ? result[0].tournamentCount : 0;
         const name = `${tournamentName} ${tournamentCount + 1}`;
+        console.log(players);
         const newTournament = await tournamentService.createTournament({
             tournamentName: name,
             date: new Date(),
@@ -116,6 +118,7 @@ async function createTournamentWithGames(req, res) {
             numDivisions,
             numGamesPerMatchup: numGames,
         });
+        console.log("Created New Tournament")
         const divisionSize = Math.ceil(players.length / numDivisions);
         const divisionIds = [];
         const allGames = [];
@@ -274,6 +277,7 @@ async function getTournamentDetails(req, res) {
     }
 }
 async function addRound(req, res) {
+    console.log('addRound');
     try {
         const { tournamentId } = req.params;
         const { divisionId, isCrossover } = req.body;

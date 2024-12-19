@@ -17,7 +17,7 @@ const TournamentsScreen = () => {
         try {
             const locationId = await AsyncStorage.getItem('locationId');
             const response = await getTournamentsByLocation(locationId);
-            console.log('Fetched tournaments:', response);
+            // console.log('Fetched tournaments:', response);
             setTournaments(response);
         } catch (error) {
             // Alert.alert('Error', 'Error fetching tournaments.');

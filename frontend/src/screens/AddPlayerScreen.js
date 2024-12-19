@@ -1,222 +1,210 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableWithoutFeedback, TouchableOpacity, Switch, FlatList, Alert, Keyboard } from 'react-native';
-import Autocomplete from 'react-native-autocomplete-input';
-import { addPlayerToTournament, searchPlayers, createPlayer, addTournament } from '../services/api';
+import React, { useState } from 'react';
+import {
+    View,
+    Text,
+    TextInput,
+    FlatList,
+    Button,
+    Alert,
+    StyleSheet,
+    TouchableOpacity,
+    Modal,
+    Switch,
+} from 'react-native';
+import { addTournament, createPlayer, getAllPlayersOfLocation } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CommonActions } from '@react-navigation/native';
 
 const AddPlayerScreen = ({ route, navigation }) => {
     const { numPlayers, numDivisions, numGames } = route.params;
     const [playerName, setPlayerName] = useState('');
-    const [playerSuggestions, setPlayerSuggestions] = useState([]);
+    const [allPlayers, setAllPlayers] = useState([]);
+    const [filteredPlayers, setFilteredPlayers] = useState([]);
     const [selectedPlayers, setSelectedPlayers] = useState([]);
     const [shuffle, setShuffle] = useState(false);
-    const [showAddPlayerPopup, setShowAddPlayerPopup] = useState(false);
-    const [newPlayerHandicap, setNewPlayerHandicap] = useState(0.0);
+    const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
     const [newPlayerName, setNewPlayerName] = useState('');
-    const inputRef = useRef(null);
+    const [newPlayerHandicap, setNewPlayerHandicap] = useState('');
 
-    const handlePlayerSearch = async (query) => {
+    const fetchPlayers = async () => {
+        try {
+            const locationId = await AsyncStorage.getItem('locationId');
+            const players = await getAllPlayersOfLocation(locationId); // Assume response is an array of names
+            setAllPlayers(players);
+            setFilteredPlayers(players);
+        } catch (error) {
+            console.error('Error fetching players:', error);
+            Alert.alert('Error', 'Failed to load players.');
+        }
+    };
+
+    const handleSearch = (query) => {
         setPlayerName(query);
-
-        if (query.length < 1) {
-            setPlayerSuggestions([]);
-            setShowAddPlayerPopup(false);
-            return;
-        }
-
-        try {
-            const suggestions = await searchPlayers(query);
-            setPlayerSuggestions(suggestions);
-        } catch (error) {
-            console.error("Error fetching player suggestions:", error);
+        if (query.length === 0) {
+            setFilteredPlayers(allPlayers.filter((player) => !selectedPlayers.includes(player)));
+        } else {
+            const filtered = allPlayers.filter(
+                (player) =>
+                    player.name.toLowerCase().includes(query.toLowerCase()) &&
+                    !selectedPlayers.find((selected) => selected._id === player._id)
+            );
+            setFilteredPlayers(filtered);
         }
     };
 
-    const handleAddExistingPlayer = (player) => {
+    const handleSelectPlayer = (player) => {
         if (selectedPlayers.length >= numPlayers) {
-            Alert.alert("Player Limit Reached", `You can only add ${numPlayers} players.`);
+            Alert.alert('Player Limit Reached', `You can only add ${numPlayers} players.`);
             return;
         }
 
-        if (selectedPlayers.find(p => p._id === player._id)) return;
-        setSelectedPlayers([...selectedPlayers, player]);
-        setPlayerName('');
-        setPlayerSuggestions([]); // Clear suggestions without dismissing keyboard
+        setSelectedPlayers((prev) => [...prev, player]);
+        setFilteredPlayers((prev) => prev.filter((p) => p._id !== player._id));
     };
 
+    const handleRemovePlayer = (player) => {
+        setSelectedPlayers((prev) => prev.filter((p) => p._id !== player._id));
+        setFilteredPlayers((prev) => [...prev, player]);
+    };
     const handleAddNewPlayer = async () => {
-        if (selectedPlayers.length >= numPlayers) {
-            Alert.alert("Player Limit Reached", `You can only add ${numPlayers} players.`);
+        if (!newPlayerName.trim()) {
+            Alert.alert('Error', 'Player name is required.');
             return;
         }
 
         try {
-            console.log(newPlayerHandicap + " added");
-            const newPlayer = await createPlayer({ name: newPlayerName, handicap: newPlayerHandicap != null || newPlayerHandicap != '' ? newPlayerHandicap : 0 });
-            setSelectedPlayers([...selectedPlayers, newPlayer]);
-            setPlayerName('');
+            // Save the new player to the backend
+            const newPlayer = await createPlayer({ name: newPlayerName, handicap: newPlayerHandicap || 0 });
+
+            // Add the new player object to the lists
+            setAllPlayers((prev) => [...prev, newPlayer]);
+            setFilteredPlayers((prev) => [...prev, newPlayer]);
+
+            // Reset modal inputs and close modal
+            setNewPlayerName('');
             setNewPlayerHandicap('');
-            setShowAddPlayerPopup(false);
+            setShowAddPlayerModal(false);
         } catch (error) {
-            const errorMessage = error.response?.data?.message || "Failed to create player";
-            console.error("Error creating new player:", errorMessage);
-            Alert.alert("Error", errorMessage);        }
-    };
-
-    const handleDeletePlayer = (playerId) => {
-        setSelectedPlayers(selectedPlayers.filter(player => player._id !== playerId));
-    };
-    const shufflePlayers = (players, numDivisions) => {
-        for (let i = players.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [players[i], players[j]] = [players[j], players[i]];
+            console.error('Error creating player:', error);
+            Alert.alert('Error', 'Failed to add the player.');
         }
-
-        const divisions = Array.from({ length: numDivisions }, () => []);
-        players.forEach((player, index) => {
-            if (!player._id) {
-                throw new Error(`Invalid player: ${JSON.stringify(player)}`);
-            }
-            const divisionIndex = index % numDivisions;
-            divisions[divisionIndex].push(player);
-        });
-
-        return divisions;
     };
+
     const handleAddTournament = async () => {
         try {
-            const players = shuffle ? shufflePlayers(selectedPlayers, numDivisions).flat() : selectedPlayers;
-            const response = await addTournament(players, numDivisions, numGames); // Backend call to create tournament
+            const players = shuffle
+                ? [...selectedPlayers].sort(() => Math.random() - 0.5)
+                : selectedPlayers;
+
+            await addTournament(players, numDivisions, numGames);
             Alert.alert('Success', 'Tournament created successfully!');
-            // Reset the navigation stack to TournamentScreen
             navigation.dispatch(
                 CommonActions.reset({
-                    index: 0, // Start at index 0
-                    routes: [{ name: 'Tournament' }], // Only 'TournamentScreen' in the stack
+                    index: 0,
+                    routes: [{ name: 'Tournament' }],
                 })
             );
         } catch (error) {
-            console.error("Error creating tournament:", error);
+            console.error('Error creating tournament:', error);
             Alert.alert('Error', 'Failed to create the tournament.');
         }
     };
 
+    React.useEffect(() => {
+        fetchPlayers();
+    }, []);
     return (
         <View style={styles.container}>
-            {/* Add Players Autocomplete */}
-            <View style={styles.autocompleteSection}>
-                <View style={styles.inputWrapper}>
-                    <Autocomplete
-                        data={playerSuggestions}
-                        defaultValue={playerName}
-                        onChangeText={handlePlayerSearch}
-                        placeholder="Enter player name"
-                        editable={selectedPlayers.length < numPlayers} // Disable input if limit reached
-                        containerStyle={[styles.autocompleteContainer, { flex: 1 }]} // Allow input to take up available space
-                        inputContainerStyle={styles.inputContainer}
-                        listContainerStyle={styles.dropdownListContainer} // Add offset to dropdown
-                        flatListProps={{
-                            keyboardShouldPersistTaps: 'always',
-                            keyExtractor: (item) => item._id,
-                            renderItem: ({ item }) => (
-                                <TouchableOpacity onPress={() => handleAddExistingPlayer(item)}>
-                                    <Text style={styles.suggestion}>{`${item.name} (Handicap: ${item.handicap})`}</Text>
-                                </TouchableOpacity>
-                            ),
-                        }}
-                        renderTextInput={(props) => (
-                            <TextInput
-                                {...props}
-                                ref={inputRef}
-                                autoFocus
-                                onFocus={() => {
-                                    if (inputRef.current) {
-                                        inputRef.current.focus();
-                                    }
-                                }}
-                            />
-                        )}
-                    />
-
-                    {/* + Icon for Adding New Player */}
-                    {playerSuggestions.length === 0 && playerName.length >= 3 && (
-                        <TouchableOpacity onPress={() => setShowAddPlayerPopup(true)} style={styles.addIcon}>
-                            <Text style={styles.plusText}>+</Text>
+            <View style={styles.searchContainer}>
+                <TextInput
+                    style={styles.searchInput}
+                    value={playerName}
+                    onChangeText={handleSearch}
+                    placeholder="Search players..."
+                />
+                <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => setShowAddPlayerModal(true)}
+                >
+                    <Text style={styles.addButtonText}>+</Text>
+                </TouchableOpacity>
+            </View>
+            <FlatList
+                data={filteredPlayers}
+                keyExtractor={(item) => item._id}
+                renderItem={({ item }) => (
+                    <TouchableOpacity
+                        style={styles.playerItem}
+                        onPress={() => handleSelectPlayer(item)}
+                    >
+                        {/* Access the 'name' property explicitly */}
+                        <Text style={styles.playerName}>{item.name}</Text>
+                        <Text style={styles.playerHandicap}>Handicap: {item.handicap}</Text>
+                    </TouchableOpacity>
+                )}
+                ListEmptyComponent={
+                    <Text style={styles.emptyText}>No players found. Add a new player!</Text>
+                }
+            />
+            <Text style={styles.selectedTitle}>Selected Players ({selectedPlayers.length}):</Text>
+            <FlatList
+                data={selectedPlayers}
+                keyExtractor={(item) => item._id}
+                renderItem={({ item }) => (
+                    <View style={styles.selectedPlayerItem}>
+                        {/* Access player name instead of rendering the whole object */}
+                        <Text>{item.name} </Text>
+                        <Text style={styles.playerHandicap}>Handicap: {item.handicap}</Text>
+                        <TouchableOpacity onPress={() => handleRemovePlayer(item)}>
+                            <Text style={styles.removeText}>Remove</Text>
                         </TouchableOpacity>
-                    )}
-                </View>
+                    </View>
+                )}
+            />
+            <View style={styles.toggleContainer}>
+                <Text style={styles.toggleText}>Shuffle Players</Text>
+                <Switch value={shuffle} onValueChange={setShuffle} />
             </View>
+            <Button
+                title="Add Tournament"
+                onPress={handleAddTournament}
+                disabled={selectedPlayers.length != numPlayers}
+            />
 
-            {/* Players List with Player Count */}
-            <View style={styles.playersListSection}>
-                <Text style={styles.playerCount}>Players Added: {selectedPlayers.length} / {numPlayers}</Text>
-                <FlatList
-                    data={selectedPlayers}
-                    keyExtractor={(item) => item._id}
-                    renderItem={({ item }) => (
-                        <View style={styles.playerContainer}>
-                            <View>
-                                <Text style={styles.playerName}>{item.name}</Text>
-                                <Text style={styles.playerHandicap}>Handicap: {item.handicap}</Text>
-                            </View>
-                            <TouchableOpacity onPress={() => handleDeletePlayer(item._id)}>
-                                <Text style={styles.deleteText}>Remove</Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-                />
-            </View>
-
-            {/* Shuffle Check & Proceed Button */}
-            <View style={styles.footerSection}>
-                <View style={styles.switchContainer}>
-                    <Text>Shuffle Players into Divisions</Text>
-                    <Switch value={shuffle} onValueChange={setShuffle} />
-                </View>
-                <Button
-                    title="Add Tournament"
-                    onPress={handleAddTournament}
-                    color="#83c985"
-                    disabled={selectedPlayers.length !== parseInt(numPlayers)} // Ensure all players are added
-                />
-
-            </View>
-
-            {/* Popup for adding new player */}
-            {showAddPlayerPopup && (
-                <View style={styles.overlay}>
-                    <View style={styles.popupContainer}>
-                        <Text style={styles.popupTitle}>Add New Player</Text>
-                        <TextInput 
-                            style={styles.input}
+            {/* Add Player Modal */}
+            <Modal
+                visible={showAddPlayerModal}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setShowAddPlayerModal(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Add New Player</Text>
+                        <TextInput
+                            style={styles.modalInput}
                             value={newPlayerName}
                             onChangeText={setNewPlayerName}
                             placeholder="Enter Player Name"
                         />
                         <TextInput
-                            style={styles.input}
+                            style={styles.modalInput}
                             value={newPlayerHandicap}
                             onChangeText={setNewPlayerHandicap}
+                            placeholder="Enter Player Handicap"
                             keyboardType="numeric"
-                            placeholder="Enter handicap"
                         />
-                        <View style={styles.popupButtons}>
+                        <View style={styles.modalButtons}>
+                            <Button title="Add" onPress={handleAddNewPlayer} />
                             <Button
-                                style={styles.addnewPlayerButton}
-                                title="Add Player"
-                                onPress={handleAddNewPlayer}
-                                color="#83c985"
-                            />
-                            <Button
-                                style={styles.addnewPlayerCancelButton}
                                 title="Cancel"
-                                onPress={() => setShowAddPlayerPopup(false)}
-                                color="#FF0000"
+                                color="red"
+                                onPress={() => setShowAddPlayerModal(false)}
                             />
                         </View>
                     </View>
                 </View>
-            )}
+            </Modal>
         </View>
     );
 };
@@ -226,151 +214,101 @@ export default AddPlayerScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
+        padding: 16,
     },
-    autocompleteSection: {
-        flex: 0.15,
-        justifyContent: 'center',
-        zIndex: 2,
-    },
-    inputWrapper: {
+    searchContainer: {
         flexDirection: 'row',
-        alignItems: 'center',
+        marginBottom: 10,
     },
-    playersListSection: {
-        flex: 0.7,
-        marginVertical: 10,
+    searchInput: {
+        flex: 3,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 5,
         padding: 10,
+        marginRight: 10,
     },
-    footerSection: {
-        flex: 0.15,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    autocompleteContainer: {
+    addButton: {
         flex: 1,
-        position: 'relative',
-        zIndex: 1,
-    },
-    inputContainer: {
-        borderWidth: 0,
-        padding: 5,
-        flex: 1,
-        position: 'relative',
-        zIndex: 3,
-    },
-    dropdownListContainer: {
-        position: 'absolute',
-        width: '100%',
-        marginTop: 40, // Adjust the dropdown position slightly below the input field
-    },
-    suggestion: {
-        padding: 10,
-        fontSize: 16,
-        color: '#333',
-        position: 'relative',
-        zIndex: 1,
-    },
-    addIcon: {
-        marginTop: 10,
-        marginLeft: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: 32,
-        height: 32,
-        borderRadius: 18,
         backgroundColor: '#83c985',
+        borderRadius: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    plusText: {
+    addButtonText: {
         color: '#fff',
         fontSize: 24,
-        fontWeight: 'bold',
     },
-    playerCount: {
-        textAlign: 'right',
-        fontSize: 14,
-        color: '#555',
-        marginBottom: 5,
-    },
-    playerContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+    playerItem: {
         padding: 10,
         backgroundColor: '#f9f9f9',
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        marginBottom: 8,
+        marginBottom: 5,
+        borderRadius: 5,
     },
     playerName: {
         fontSize: 16,
+    },
+    selectedTitle: {
+        fontSize: 16,
         fontWeight: 'bold',
+        marginTop: 20,
+        marginBottom: 10,
     },
-    playerHandicap: {
-        fontSize: 14,
-        color: '#666',
-        marginTop: 4,
+    selectedPlayerItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 10,
+        backgroundColor: '#e7f7e7',
+        borderRadius: 5,
+        marginBottom: 5,
     },
-    deleteText: {
+    removeText: {
         color: 'red',
+    },
+    emptyText: {
+        textAlign: 'center',
+        color: '#999',
+        marginTop: 20,
+    },
+    toggleContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginVertical: 20,
+    },
+    toggleText: {
         fontSize: 16,
     },
-    switchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: '100%',
-        paddingHorizontal: 20,
-    },
-    addnewPlayerButton: {
-        width: '25%',
-    },
-    addnewPlayerCancelButton: {
-        width: '25%',
-    },
-    overlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Dimmed background
+    modalContainer: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        zIndex: 999, // Ensure it overlays everything
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
-    popupContainer: {
+    modalContent: {
         backgroundColor: '#fff',
-        borderRadius: 10,
         padding: 20,
+        borderRadius: 10,
         width: '80%',
         alignItems: 'center',
-        elevation: 10, // Shadow for Android
-        shadowColor: '#000', // Shadow for iOS
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
     },
-    popupTitle: {
+    modalTitle: {
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 10,
     },
-    input: {
-        width: '100%',
+    modalInput: {
         borderWidth: 1,
         borderColor: '#ccc',
-        borderRadius: 8,
+        borderRadius: 5,
         padding: 10,
-        marginBottom: 20,
-        textAlign: 'center',
-        fontSize: 16,
+        width: '100%',
+        marginBottom: 10,
     },
-    popupButtons: {
+    modalButtons: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
-        marginTop: 10,
     },
 });

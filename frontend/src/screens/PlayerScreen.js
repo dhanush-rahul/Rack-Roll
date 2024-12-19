@@ -177,16 +177,9 @@ const PlayerScreen = () => {
                         <View style={styles.verticalDivider} />
                         {Array.from({ length: 10 }).map((_, colIndex) => (
                     <React.Fragment key={colIndex}>
-                        <TextInput
-                            style={[
-                                styles.tableCell,
-                                styles.scoreColumn,
-                                styles.scoreInput,
-                            ]}
-                            value={scores[colIndex] !== undefined ? scores[colIndex].toString() : ''}
-                            onChangeText={(value) => handleScoreChange(value, colIndex)}
-                            keyboardType="numeric"
-                        />
+                        <Text style={[styles.tableHeader, styles.scoreColumn]}>
+                {colIndex + 1}
+            </Text>
                         <View style={styles.verticalDivider} />
                     </React.Fragment>
                 ))}

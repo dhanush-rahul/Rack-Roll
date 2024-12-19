@@ -4,7 +4,7 @@ const tournamentController = require('../controllers/tournamentController');
 
 router.post('/create-with-games', tournamentController.createTournamentWithGames);
 router.post('/', tournamentController.createTournament);
-router.post('/:tournamentId/add-rounds', tournamentController.addRound)
+router.put('/:tournamentId/add-rounds', tournamentController.addRound)
 router.get('/', tournamentController.getAllTournaments);
 router.get('/:id', tournamentController.getTournamentById);
 router.get('/:tournamentId/scoresheet', tournamentController.getScoresheet);
