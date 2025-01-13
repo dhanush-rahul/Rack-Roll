@@ -6,21 +6,20 @@ const playerService = require('../services/playerService');
 
 async function createPlayer(req, res) {
     try {
-        const { name, handicap } = req.body;
-    
+        const { name, handicap, locationId } = req.body;
         // Check if the player already exists
         const existingPlayer = await Player.findOne({ name });
         if (existingPlayer) {
             return res.status(400).json({ message: `Player with name '${name}' already exists.` });
         }
-    
+        const location = await Location.findById(locationId)
         // Create a new player
         const player = new Player({ 
             name, 
-            handicap: handicap != null ? handicap : 0 
+            handicap: handicap != null ? handicap : 0,
+            location
         });
-        await player.save();
-    
+        await player.save();    
         res.status(201).json(player);
     } catch (error) {
         if (error.code === 11000) {

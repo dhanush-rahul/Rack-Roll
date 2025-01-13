@@ -9,8 +9,10 @@ import {
     Alert,
     Animated,
     TextInput,
+    Modal,
+    Button,
 } from 'react-native';
-import { fetchPlayersByLocation, updatePlayerHandicap } from '../services/api'; // Ensure you have your API service set up
+import { createPlayer, fetchPlayersByLocation, updatePlayerHandicap } from '../services/api'; // Ensure you have your API service set up
 
 const calculateNewHandicap = (scores, currentHandicap) => {
     if (scores.length === 0) {
@@ -43,7 +45,7 @@ const PlayerRow = ({
         return null;
     }
 
-    const displayedScores = item.scores.slice(-10); // Get last 10 scores
+    const displayedScores = (item.scores || Array(10).fill(0)).slice(-10);  // Get last 10 scores
     const [newHandicap, setNewHandicap] = useState(calculateNewHandicap(displayedScores, item.handicap || 0));
 
     // Compare currentHandicap and newHandicap
@@ -139,7 +141,9 @@ const PlayerRow = ({
 const PlayerScreen = () => {
     const [players, setPlayers] = useState([]);
     const [highlightedRow, setHighlightedRow] = useState(null);
-
+    const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
+    const [newPlayerName, setNewPlayerName] = useState('');
+    const [newPlayerHandicap, setNewPlayerHandicap] = useState('');
     useEffect(() => {
         fetchPlayers();
     }, []);
@@ -161,6 +165,28 @@ const PlayerScreen = () => {
             console.error("Error updating player handicap:", error);
         }
     };
+    const handleAddNewPlayer = async () => {
+            if (!newPlayerName.trim()) {
+                Alert.alert('Error', 'Player name is required.');
+                return;
+            }
+    
+            try {
+                // Save the new player to the backend
+                const newPlayer = await createPlayer({ name: newPlayerName, handicap: newPlayerHandicap || 0 });
+                console.log(newPlayer)
+                // Add the new player object to the lists
+                setPlayers((prev) => [...prev, newPlayer]);
+    
+                // Reset modal inputs and close modal
+                setNewPlayerName('');
+                setNewPlayerHandicap('');
+                setShowAddPlayerModal(false);
+            } catch (error) {
+                console.error('Error creating player:', error);
+                Alert.alert('Error', 'Failed to add the player.');
+            }
+        };
 
     return (
         <View style={styles.container}>
@@ -215,6 +241,54 @@ const PlayerScreen = () => {
                     />
                 </View>
             </ScrollView>
+            {/* Add New Player Button */}
+            <TouchableOpacity
+                    style={[
+                        styles.button,
+                        styles.addPlayerButton,
+                    ]}
+                    onPress={() => {
+                        // Implement navigation to AddPlayerScreen
+                        setShowAddPlayerModal(!showAddPlayerModal); 
+                    }}
+                >
+                    <Text style={styles.addPlayerText}>Add New Player</Text>
+                </TouchableOpacity>
+
+                {/* Add Player Modal */}
+                            <Modal
+                                visible={showAddPlayerModal}
+                                transparent
+                                animationType="slide"
+                                onRequestClose={() => setShowAddPlayerModal(false)}
+                            >
+                                <View style={styles.modalContainer}>
+                                    <View style={styles.modalContent}>
+                                        <Text style={styles.modalTitle}>Add New Player</Text>
+                                        <TextInput
+                                            style={styles.modalInput}
+                                            value={newPlayerName}
+                                            onChangeText={setNewPlayerName}
+                                            placeholder="Enter Player Name"
+                                        />
+                                        <TextInput
+                                            style={styles.modalInput}
+                                            value={newPlayerHandicap}
+                                            onChangeText={setNewPlayerHandicap}
+                                            placeholder="Enter Player Handicap"
+                                            keyboardType="numeric"
+                                        />
+                                        <View style={styles.modalButtons}>
+                                            <Button title="Add" onPress={handleAddNewPlayer} />
+                                            <Button
+                                                title="Cancel"
+                                                color="red"
+                                                onPress={() => setShowAddPlayerModal(false)}
+                                            />
+                                        </View>
+                                    </View>
+                                </View>
+                            </Modal>
         </View>
     );
 };
@@ -293,6 +367,13 @@ const styles = StyleSheet.create({
         fontSize: 12,
         textAlign: 'center',
     },
+    addPlayerText:{
+        fontSize: 18,
+        color: '#fff',
+        textAlign: 'center',
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+    },
     verticalDivider: {
         width: 1,
         backgroundColor: '#ddd',
@@ -315,5 +396,47 @@ const styles = StyleSheet.create({
         paddingVertical: 4,
         paddingHorizontal: 5,
         width: 50, // Matches the score column width
+    },
+    addPlayerButton:{
+        marginTop: 5,
+        backgroundColor: '#83c985',
+        borderRadius: 5,
+        padding: 5,
+        // marginLeft: 10,
+        alignSelf: 'center',
+        marginBottom: 5,
+        width: 200,
+        fontSize: 14
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 10,
+        width: '80%',
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    modalInput: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 5,
+        padding: 10,
+        width: '100%',
+        marginBottom: 10,
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
     },
 });

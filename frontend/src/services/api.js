@@ -3,8 +3,8 @@ import axios from 'axios';
 import { Alert } from 'react-native';
 
 const api = axios.create({
-    baseURL: 'https://api.dhanushcharipally.com/api', // Replace with your backend URL
-    // baseURL:'http://192.168.2.20:5000/api', 
+    // baseURL: 'https://api.dhanushcharipally.com/api', // Replace with your backend URL
+    baseURL:'http://192.168.2.20:5000/api',
     headers:{
         'Content-Type': 'application/json',
     }
@@ -74,7 +74,14 @@ export const getAllPlayersOfLocation = async (locationId) =>{
 
 // Create a new player
 export const createPlayer = async (playerData) => {
-    const response = await api.post('/players', playerData);
+    const locationId = await AsyncStorage.getItem('locationId');
+    const playerDataWithLocation = {
+        ...playerData,
+        locationId, // Add locationId to playerData
+    };
+    console.log(playerDataWithLocation);
+
+    const response = await api.post('/players', playerDataWithLocation);
     return response.data;
 };
 
