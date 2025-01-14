@@ -76,32 +76,14 @@ async function getPlayersByLocation(req, res) {
             return res.status(400).json({ error: 'locationId is required' });
         }
 
-        // Find the location and populate its tournaments
-        const location = await Location.findById(new mongoose.Types.ObjectId(locationId)).populate('tournaments', '_id');
-        if (!location) {
-            return res.status(404).json({ error: 'Location not found' });
-        }
-
-        const tournamentIds = location.tournaments.map((tournament) => tournament._id);
-
-        // Find all games for the tournaments
-        const games = await Game.find({ tournamentId: { $in: tournamentIds } })
-            .populate('player1 player2', 'name')
+        // Fetch players based on location
+        const players = await Player.find({ location: locationId })
+            .select('name handicap') // Select only necessary fields
             .lean();
 
-        // Aggregate unique player names from the games
-        const playerNames = new Set();
-        games.forEach((game) => {
-            if (game.player1) {
-                playerNames.add(game.player1.name);
-            }
-            if (game.player2) {
-                playerNames.add(game.player2.name);
-            }
-        });
-
-        // Fetch full player models based on the collected names
-        const players = await Player.find({ name: { $in: Array.from(playerNames) } });
+        if (!players.length) {
+            return res.status(404).json({ error: 'No players found for this location' });
+        }
 
         res.status(200).json(players);
     } catch (error) {

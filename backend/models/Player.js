@@ -8,5 +8,7 @@ const playerSchema = new Schema({
 
     created_timestamp: { type: Date, default: Date.now}
 });
+// Compound index for unique name and location
+playerSchema.index({ name: 1, location: 1 }, { unique: true });
 
 module.exports = mongoose.model('Player', playerSchema);
