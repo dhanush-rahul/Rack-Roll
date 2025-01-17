@@ -1,6 +1,6 @@
 import { Alert } from 'react-native';
-import { createPlayer, getAllPlayersOfLocation } from './services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createPlayer, getAllPlayersOfLocation } from '../services/api';
 
 export const fetchPlayers = async (setAllPlayers, setFilteredPlayers) => {
     try {

@@ -27,7 +27,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "3da6c71a-3348-4241-894b-2986e2879655"
+        "projectId": "b23f56b7-b2e2-47f5-9da2-1df9fbcecf9a"
       }
     },
     "runtimeVersion": {
@@ -36,6 +36,6 @@
     "updates": {
       "url": "https://u.expo.dev/3da6c71a-3348-4241-894b-2986e2879655"
     },
-    "owner": "dhanushcharipallydev"
+    "owner": "dhanushdev"
   }
 }
