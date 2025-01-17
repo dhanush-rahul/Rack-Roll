@@ -162,13 +162,16 @@ const PlayerScreen = () => {
         addNewPlayer(
             newPlayerName,
             newPlayerHandicap,
-            setPlayers,
-            setPlayers,
+            ()=>{},
+            ()=>{},
             () => {
                 setNewPlayerName('');
                 setNewPlayerHandicap('');
             },
-            () => setShowAddPlayerModal(false)
+            () => {
+                setShowAddPlayerModal(false);
+                fetchPlayers(setPlayers, setPlayers);
+            }
         );
 
     return (
