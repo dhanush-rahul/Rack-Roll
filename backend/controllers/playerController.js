@@ -93,57 +93,57 @@ async function searchPlayers(req, res) {
 async function getPlayersByLocation(req, res) {
     try {
         const { locationId } = req.query;
+
+        // Validate locationId
         if (!locationId) {
             return res.status(400).json({ error: 'locationId is required' });
         }
 
-        // Step 1: Find the location and get its tournaments
-        const location = await Location.findById(locationId).populate('tournaments', '_id');
-        if (!location) {
-            return res.status(404).json({ error: 'Location not found' });
-        }
-
-        const tournamentIds = location.tournaments.map((tournament) => tournament._id);
-
-        // Step 2: Find all games for the tournaments
-        const games = await Game.find({ tournamentId: { $in: tournamentIds } })
-            .populate('player1 player2', 'name handicap')
+        // Step 1: Fetch players based on location
+        const players = await Player.find({ location: locationId })
+            .select('_id name handicap') // Fetch only required fields
             .lean();
 
-        // Step 3: Aggregate players and their scores
+        if (!players.length) {
+            return res.status(404).json({ error: 'No players found for this location' });
+        }
+
+        // Step 2: Fetch scores from games for the players
+        const playerIds = players.map((player) => player._id);
+        const games = await Game.find({ $or: [{ player1: { $in: playerIds } }, { player2: { $in: playerIds } }] })
+            .select('player1 player2 scores')
+            .lean();
+
+        // Step 3: Aggregate scores for each player
         const playerScores = {};
 
         games.forEach((game) => {
-            // Process Player 1
-            if (!playerScores[game.player1._id]) {
-                playerScores[game.player1._id] = {
-                    name: game.player1.name,
-                    handicap: game.player1.handicap,
-                    scores: [],
-                };
+            // Process Player 1 scores
+            if (playerIds.includes(game.player1.toString())) {
+                if (!playerScores[game.player1]) {
+                    playerScores[game.player1] = [];
+                }
+                playerScores[game.player1].push(...game.scores.map((s) => s.player1));
             }
-            playerScores[game.player1._id].scores.push(...game.scores.map((s) => s.player1));
 
-            // Process Player 2
-            if (!playerScores[game.player2._id]) {
-                playerScores[game.player2._id] = {
-                    name: game.player2.name,
-                    handicap: game.player2.handicap,
-                    scores: [],
-                };
+            // Process Player 2 scores
+            if (playerIds.includes(game.player2.toString())) {
+                if (!playerScores[game.player2]) {
+                    playerScores[game.player2] = [];
+                }
+                playerScores[game.player2].push(...game.scores.map((s) => s.player2));
             }
-            playerScores[game.player2._id].scores.push(...game.scores.map((s) => s.player2));
         });
 
-        // Step 4: Convert playerScores object into an array
-        const players = Object.keys(playerScores).map((playerId) => ({
-            _id: playerId,
-            name: playerScores[playerId].name,
-            handicap: playerScores[playerId].handicap,
-            scores: playerScores[playerId].scores,
+        // Step 4: Combine players with their scores
+        const result = players.map((player) => ({
+            _id: player._id,
+            name: player.name,
+            handicap: player.handicap,
+            scores: playerScores[player._id] || [],
         }));
 
-        res.status(200).json(players);
+        res.status(200).json(result);
     } catch (error) {
         console.error('Error fetching players by location:', error);
         res.status(500).json({ error: 'Failed to fetch players by location' });

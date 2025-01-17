@@ -9,11 +9,10 @@ import {
     Alert,
     Animated,
     TextInput,
-    Modal,
-    Button,
 } from 'react-native';
-import { createPlayer, fetchPlayersByLocation, updatePlayerHandicap } from '../services/api'; // Ensure you have your API service set up
-
+import { updatePlayerHandicap } from '../services/api'; // Ensure you have your API service set up
+import PlayerModal from './PlayerModal';
+import { fetchPlayers, addNewPlayer } from './playerUtils';
 const calculateNewHandicap = (scores, currentHandicap) => {
     if (scores.length === 0) {
         return currentHandicap.toFixed(1); // No scores to adjust
@@ -137,56 +136,40 @@ const PlayerRow = ({
         </Animated.View>
     );
 };
-
 const PlayerScreen = () => {
     const [players, setPlayers] = useState([]);
     const [highlightedRow, setHighlightedRow] = useState(null);
     const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
     const [newPlayerName, setNewPlayerName] = useState('');
     const [newPlayerHandicap, setNewPlayerHandicap] = useState('');
-    useEffect(() => {
-        fetchPlayers();
-    }, []);
 
-    const fetchPlayers = async () => {
-        try {
-            const response = await fetchPlayersByLocation();
-            setPlayers(response);
-        } catch (error) {
-            console.error("Error fetching players:", error);
-        }
-    };
+    // Fetch players on component mount
+    useEffect(() => {
+        fetchPlayers(setPlayers, setPlayers); // Shared utility for fetching players
+    }, []);
 
     const changeHandicap = async (playerId, newHandicap) => {
         try {
             await updatePlayerHandicap(playerId, newHandicap);
-            fetchPlayers(); // Refresh players after updating
+            fetchPlayers(setPlayers, setPlayers); // Refresh players after updating handicap
         } catch (error) {
-            console.error("Error updating player handicap:", error);
+            console.error('Error updating player handicap:', error);
+            Alert.alert('Error', 'Failed to update player handicap.');
         }
     };
-    const handleAddNewPlayer = async () => {
-            if (!newPlayerName.trim()) {
-                Alert.alert('Error', 'Player name is required.');
-                return;
-            }
-    
-            try {
-                // Save the new player to the backend
-                const newPlayer = await createPlayer({ name: newPlayerName, handicap: newPlayerHandicap || 0 });
-                console.log(newPlayer)
-                // Add the new player object to the lists
-                setPlayers((prev) => [...prev, newPlayer]);
-    
-                // Reset modal inputs and close modal
+
+    const handleAddNewPlayer = () =>
+        addNewPlayer(
+            newPlayerName,
+            newPlayerHandicap,
+            setPlayers,
+            setPlayers,
+            () => {
                 setNewPlayerName('');
                 setNewPlayerHandicap('');
-                setShowAddPlayerModal(false);
-            } catch (error) {
-                console.error('Error creating player:', error);
-                Alert.alert('Error', 'Failed to add the player.');
-            }
-        };
+            },
+            () => setShowAddPlayerModal(false)
+        );
 
     return (
         <View style={styles.container}>
@@ -197,25 +180,21 @@ const PlayerScreen = () => {
                     <View style={[styles.tableRow, styles.tableHeaderRow]}>
                         <Text style={[styles.tableHeader, styles.nameColumn]}>Name</Text>
                         <View style={styles.verticalDivider} />
-                        <Text style={[styles.tableHeader, styles.handicapColumn]}>
-                            Handicap
-                        </Text>
+                        <Text style={[styles.tableHeader, styles.handicapColumn]}>Handicap</Text>
                         <View style={styles.verticalDivider} />
                         {Array.from({ length: 10 }).map((_, colIndex) => (
-                    <React.Fragment key={colIndex}>
-                        <Text style={[styles.tableHeader, styles.scoreColumn]}>
-                {colIndex + 1}
-            </Text>
-                        <View style={styles.verticalDivider} />
-                    </React.Fragment>
-                ))}
+                            <React.Fragment key={colIndex}>
+                                <Text style={[styles.tableHeader, styles.scoreColumn]}>
+                                    {colIndex + 1}
+                                </Text>
+                                <View style={styles.verticalDivider} />
+                            </React.Fragment>
+                        ))}
                         <Text style={[styles.tableHeader, styles.newHandicapColumn]}>
                             New Handicap
                         </Text>
                         <View style={styles.verticalDivider} />
-                        <Text style={[styles.tableHeader, styles.actionColumn]}>
-                            Action
-                        </Text>
+                        <Text style={[styles.tableHeader, styles.actionColumn]}>Action</Text>
                     </View>
 
                     {/* Player Rows */}
@@ -241,54 +220,25 @@ const PlayerScreen = () => {
                     />
                 </View>
             </ScrollView>
+
             {/* Add New Player Button */}
             <TouchableOpacity
-                    style={[
-                        styles.button,
-                        styles.addPlayerButton,
-                    ]}
-                    onPress={() => {
-                        // Implement navigation to AddPlayerScreen
-                        setShowAddPlayerModal(!showAddPlayerModal); 
-                    }}
-                >
-                    <Text style={styles.addPlayerText}>Add New Player</Text>
-                </TouchableOpacity>
+                style={[styles.button, styles.addPlayerButton]}
+                onPress={() => setShowAddPlayerModal(true)}
+            >
+                <Text style={styles.addPlayerText}>Add New Player</Text>
+            </TouchableOpacity>
 
-                {/* Add Player Modal */}
-                            <Modal
-                                visible={showAddPlayerModal}
-                                transparent
-                                animationType="slide"
-                                onRequestClose={() => setShowAddPlayerModal(false)}
-                            >
-                                <View style={styles.modalContainer}>
-                                    <View style={styles.modalContent}>
-                                        <Text style={styles.modalTitle}>Add New Player</Text>
-                                        <TextInput
-                                            style={styles.modalInput}
-                                            value={newPlayerName}
-                                            onChangeText={setNewPlayerName}
-                                            placeholder="Enter Player Name"
-                                        />
-                                        <TextInput
-                                            style={styles.modalInput}
-                                            value={newPlayerHandicap}
-                                            onChangeText={setNewPlayerHandicap}
-                                            placeholder="Enter Player Handicap"
-                                            keyboardType="numeric"
-                                        />
-                                        <View style={styles.modalButtons}>
-                                            <Button title="Add" onPress={handleAddNewPlayer} />
-                                            <Button
-                                                title="Cancel"
-                                                color="red"
-                                                onPress={() => setShowAddPlayerModal(false)}
-                                            />
-                                        </View>
-                                    </View>
-                                </View>
-                            </Modal>
+            {/* Add Player Modal */}
+            <PlayerModal
+                visible={showAddPlayerModal}
+                onClose={() => setShowAddPlayerModal(false)}
+                newPlayerName={newPlayerName}
+                setNewPlayerName={setNewPlayerName}
+                newPlayerHandicap={newPlayerHandicap}
+                setNewPlayerHandicap={setNewPlayerHandicap}
+                onSubmit={handleAddNewPlayer}
+            />
         </View>
     );
 };

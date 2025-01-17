@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "RackNRoll",
-    "slug": "frontend",
-    "version": "1.2.0",
+    "slug": "rack-n-roll",
+    "version": "1.2.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -27,14 +27,15 @@
     },
     "extra": {
       "eas": {
-        "projectId": "1e126897-faab-404d-b0b7-c70d5596d570"
+        "projectId": "3da6c71a-3348-4241-894b-2986e2879655"
       }
     },
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/1e126897-faab-404d-b0b7-c70d5596d570"
-    }
+      "url": "https://u.expo.dev/3da6c71a-3348-4241-894b-2986e2879655"
+    },
+    "owner": "dhanushcharipallydev"
   }
 }

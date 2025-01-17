@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -8,39 +8,29 @@ import {
     Alert,
     StyleSheet,
     TouchableOpacity,
-    Modal,
     Switch,
 } from 'react-native';
-import { addTournament, createPlayer, getAllPlayersOfLocation } from '../services/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import PlayerModal from './PlayerModal';
+import { fetchPlayers, addNewPlayer } from './playerUtils';
+import { addTournament } from '../services/api';
 import { CommonActions } from '@react-navigation/native';
 
 const AddPlayerScreen = ({ route, navigation }) => {
     const { numPlayers, numDivisions, numGames } = route.params;
-    const [playerName, setPlayerName] = useState('');
     const [allPlayers, setAllPlayers] = useState([]);
     const [filteredPlayers, setFilteredPlayers] = useState([]);
     const [selectedPlayers, setSelectedPlayers] = useState([]);
     const [shuffle, setShuffle] = useState(false);
-    const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
     const [newPlayerName, setNewPlayerName] = useState('');
     const [newPlayerHandicap, setNewPlayerHandicap] = useState('');
+    const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
 
-    const fetchPlayers = async () => {
-        try {
-            const locationId = await AsyncStorage.getItem('locationId');
-            const players = await getAllPlayersOfLocation(locationId); // Assume response is an array of names
-            setAllPlayers(players);
-            setFilteredPlayers(players);
-        } catch (error) {
-            console.error('Error fetching players:', error);
-            Alert.alert('Error', 'Failed to load players.');
-        }
-    };
+    useEffect(() => {
+        fetchPlayers(setAllPlayers, setFilteredPlayers);
+    }, []);
 
     const handleSearch = (query) => {
-        setPlayerName(query);
-        if (query.length === 0) {
+        if (!query.trim()) {
             setFilteredPlayers(allPlayers.filter((player) => !selectedPlayers.includes(player)));
         } else {
             const filtered = allPlayers.filter(
@@ -66,29 +56,19 @@ const AddPlayerScreen = ({ route, navigation }) => {
         setSelectedPlayers((prev) => prev.filter((p) => p._id !== player._id));
         setFilteredPlayers((prev) => [...prev, player]);
     };
-    const handleAddNewPlayer = async () => {
-        if (!newPlayerName.trim()) {
-            Alert.alert('Error', 'Player name is required.');
-            return;
-        }
 
-        try {
-            // Save the new player to the backend
-            const newPlayer = await createPlayer({ name: newPlayerName, handicap: newPlayerHandicap || 0 });
-
-            // Add the new player object to the lists
-            setAllPlayers((prev) => [...prev, newPlayer]);
-            setFilteredPlayers((prev) => [...prev, newPlayer]);
-
-            // Reset modal inputs and close modal
-            setNewPlayerName('');
-            setNewPlayerHandicap('');
-            setShowAddPlayerModal(false);
-        } catch (error) {
-            console.error('Error creating player:', error);
-            Alert.alert('Error', 'Failed to add the player.');
-        }
-    };
+    const handleAddNewPlayer = () =>
+        addNewPlayer(
+            newPlayerName,
+            newPlayerHandicap,
+            setAllPlayers,
+            setFilteredPlayers,
+            () => {
+                setNewPlayerName('');
+                setNewPlayerHandicap('');
+            },
+            () => setShowAddPlayerModal(false)
+        );
 
     const handleAddTournament = async () => {
         try {
@@ -110,15 +90,13 @@ const AddPlayerScreen = ({ route, navigation }) => {
         }
     };
 
-    React.useEffect(() => {
-        fetchPlayers();
-    }, []);
     return (
         <View style={styles.container}>
+            {/* Search Players */}
             <View style={styles.searchContainer}>
                 <TextInput
                     style={styles.searchInput}
-                    value={playerName}
+                    value={newPlayerName}
                     onChangeText={handleSearch}
                     placeholder="Search players..."
                 />
@@ -129,6 +107,8 @@ const AddPlayerScreen = ({ route, navigation }) => {
                     <Text style={styles.addButtonText}>+</Text>
                 </TouchableOpacity>
             </View>
+
+            {/* Available Players List */}
             <FlatList
                 data={filteredPlayers}
                 keyExtractor={(item) => item._id}
@@ -137,74 +117,54 @@ const AddPlayerScreen = ({ route, navigation }) => {
                         style={styles.playerItem}
                         onPress={() => handleSelectPlayer(item)}
                     >
-                        {/* Access the 'name' property explicitly */}
-                        <Text style={styles.playerName}>{item.name}</Text>
-                        <Text style={styles.playerHandicap}>Handicap: {item.handicap}</Text>
+                        <Text>{item.name}</Text>
+                        <Text>Handicap: {item.handicap}</Text>
                     </TouchableOpacity>
                 )}
                 ListEmptyComponent={
                     <Text style={styles.emptyText}>No players found. Add a new player!</Text>
                 }
             />
+
+            {/* Selected Players */}
             <Text style={styles.selectedTitle}>Selected Players ({selectedPlayers.length}):</Text>
             <FlatList
                 data={selectedPlayers}
                 keyExtractor={(item) => item._id}
                 renderItem={({ item }) => (
                     <View style={styles.selectedPlayerItem}>
-                        {/* Access player name instead of rendering the whole object */}
-                        <Text>{item.name} </Text>
-                        <Text style={styles.playerHandicap}>Handicap: {item.handicap}</Text>
+                        <Text>{item.name}</Text>
+                        <Text>Handicap: {item.handicap}</Text>
                         <TouchableOpacity onPress={() => handleRemovePlayer(item)}>
                             <Text style={styles.removeText}>Remove</Text>
                         </TouchableOpacity>
                     </View>
                 )}
             />
+
+            {/* Shuffle Toggle */}
             <View style={styles.toggleContainer}>
                 <Text style={styles.toggleText}>Shuffle Players</Text>
                 <Switch value={shuffle} onValueChange={setShuffle} />
             </View>
+
+            {/* Add Tournament Button */}
             <Button
                 title="Add Tournament"
                 onPress={handleAddTournament}
-                disabled={selectedPlayers.length != numPlayers}
+                disabled={selectedPlayers.length !== numPlayers}
             />
 
             {/* Add Player Modal */}
-            <Modal
+            <PlayerModal
                 visible={showAddPlayerModal}
-                transparent
-                animationType="slide"
-                onRequestClose={() => setShowAddPlayerModal(false)}
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Add New Player</Text>
-                        <TextInput
-                            style={styles.modalInput}
-                            value={newPlayerName}
-                            onChangeText={setNewPlayerName}
-                            placeholder="Enter Player Name"
-                        />
-                        <TextInput
-                            style={styles.modalInput}
-                            value={newPlayerHandicap}
-                            onChangeText={setNewPlayerHandicap}
-                            placeholder="Enter Player Handicap"
-                            keyboardType="numeric"
-                        />
-                        <View style={styles.modalButtons}>
-                            <Button title="Add" onPress={handleAddNewPlayer} />
-                            <Button
-                                title="Cancel"
-                                color="red"
-                                onPress={() => setShowAddPlayerModal(false)}
-                            />
-                        </View>
-                    </View>
-                </View>
-            </Modal>
+                onClose={() => setShowAddPlayerModal(false)}
+                newPlayerName={newPlayerName}
+                setNewPlayerName={setNewPlayerName}
+                newPlayerHandicap={newPlayerHandicap}
+                setNewPlayerHandicap={setNewPlayerHandicap}
+                onSubmit={handleAddNewPlayer}
+            />
         </View>
     );
 };
@@ -230,7 +190,7 @@ const styles = StyleSheet.create({
     },
     addButton: {
         flex: 1,
-        backgroundColor: '#83c985',
+        backgroundColor: '#4CAF50',
         borderRadius: 5,
         justifyContent: 'center',
         alignItems: 'center',
@@ -244,9 +204,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#f9f9f9',
         marginBottom: 5,
         borderRadius: 5,
-    },
-    playerName: {
-        fontSize: 16,
     },
     selectedTitle: {
         fontSize: 16,
@@ -279,36 +236,5 @@ const styles = StyleSheet.create({
     },
     toggleText: {
         fontSize: 16,
-    },
-    modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-        backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 10,
-        width: '80%',
-        alignItems: 'center',
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    modalInput: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        padding: 10,
-        width: '100%',
-        marginBottom: 10,
-    },
-    modalButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
     },
 });
