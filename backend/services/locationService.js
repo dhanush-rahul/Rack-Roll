@@ -1,4 +1,4 @@
-const Location = require('../models/Location');
+const Location = require('../models/Location').default;
 
 async function createLocation(data) {
     const location = new Location(data);

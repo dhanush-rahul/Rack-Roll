@@ -1,7 +1,7 @@
-const Game = require('../models/Game');
-const Player = require('../models/Player');
-const Location = require('../models/Location');
-const Tournament = require('../models/Tournament');
+const Game = require('../models/Game').default;
+const Player = require('../models/Player').default;
+const Location = require('../models/Location').default;
+const Tournament = require('../models/Tournament').default;
 const playerService = require('../services/playerService');
 
 async function createPlayer(req, res) {

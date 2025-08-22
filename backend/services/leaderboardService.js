@@ -1,4 +1,4 @@
-const Leaderboard = require('../models/Leaderboard');
+const Leaderboard = require('../models/Leaderboard').default;
 
 async function createLeaderboard(data) {
     const leaderboard = new Leaderboard(data);

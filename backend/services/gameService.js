@@ -1,4 +1,4 @@
-const Game = require('../models/Game');
+const Game = require('../models/Game').default;
 const { mongoose } = require('mongoose');
 
 // Create a new game

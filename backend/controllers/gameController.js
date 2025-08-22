@@ -1,14 +1,14 @@
-const { default: mongoose } = require('mongoose');
-const Game = require('../models/Game');
-const Leaderboard = require('../models/Leaderboard');
-const gameService = require('../services/gameService');
-const leaderboardService = require('../services/leaderboardService');
-const playerService = require('../services/playerService');
+import { default as mongoose } from 'mongoose';
+import { aggregate } from '../models/Game';
+import Leaderboard from '../models/Leaderboard';
+import { createGame as _createGame, getAllGames as _getAllGames, getGameById as _getGameById, updateGame as _updateGame, deleteGame as _deleteGame } from '../services/gameService';
+import { getLeaderboard } from '../services/leaderboardService';
+import { getPlayerById, getPlayerDivision } from '../services/playerService';
 
 // Create a new game
 async function createGame(req, res) {
     try {
-        const game = await gameService.createGame(req.body);
+        const game = await _createGame(req.body);
         
         res.status(201).json(game);
     } catch (error) {
@@ -19,7 +19,7 @@ async function createGame(req, res) {
 // Get all games
 async function getAllGames(req, res) {
     try {
-        const games = await gameService.getAllGames();
+        const games = await _getAllGames();
         res.status(200).json(games);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -29,7 +29,7 @@ async function getAllGames(req, res) {
 // Get a game by ID
 async function getGameById(req, res) {
     try {
-        const game = await gameService.getGameById(req.params.id);
+        const game = await _getGameById(req.params.id);
         if (!game) return res.status(404).json({ message: "Game not found" });
         res.status(200).json(game);
     } catch (error) {
@@ -40,7 +40,7 @@ async function getGameById(req, res) {
 // Update a game by ID
 async function updateGame(req, res) {
     try {
-        const game = await gameService.updateGame(req.params.id, req.body);
+        const game = await _updateGame(req.params.id, req.body);
         if (!game) return res.status(404).json({ message: "Game not found" });
         res.status(200).json(game);
     } catch (error) {
@@ -53,7 +53,7 @@ async function updateGameWithId(req, res) {
     const { player1Score, player2Score, gameIndex } = req.body;
 
     try {
-        const game = await gameService.getGameById(id);
+        const game = await _getGameById(id);
         if (!game) {
             return res.status(404).json({ message: "Game not found" });
         }
@@ -89,18 +89,18 @@ async function updateGameWithId(req, res) {
         const player1Id = game.player1;
         const player2Id = game.player2;
 
-        const player1 = await playerService.getPlayerById(player1Id);
-        const player2 = await playerService.getPlayerById(player2Id);
+        const player1 = await getPlayerById(player1Id);
+        const player2 = await getPlayerById(player2Id);
 
         if (!player1 || !player2) {
             throw new Error("One or both players not found");
         }
 
         if (!player1Division) {
-            player1Division = await playerService.getPlayerDivision(player1Id, tournamentId);
+            player1Division = await getPlayerDivision(player1Id, tournamentId);
         }
         if (!player2Division) {
-            player2Division = await playerService.getPlayerDivision(player2Id, tournamentId);
+            player2Division = await getPlayerDivision(player2Id, tournamentId);
         }
 
         if (!player1Division || !player2Division) {
@@ -168,7 +168,7 @@ async function updateLeaderboard(
 ) {
     try {
         // Find or create the leaderboard for the division
-        let leaderboard = await leaderboardService.getLeaderboard(tournamentId, divisionId);
+        let leaderboard = await getLeaderboard(tournamentId, divisionId);
         if (!leaderboard) {
             // Create a new leaderboard if it doesn't exist
             leaderboard = new Leaderboard({
@@ -212,7 +212,7 @@ async function getMaxRounds(req, res) {
         const objectIdTournamentId = new mongoose.Types.ObjectId(tournamentId);
 
         // Query to find the maximum round for the given tournament
-        const result = await Game.aggregate([
+        const result = await aggregate([
             { $match: { tournamentId: objectIdTournamentId } }, // Filter by tournamentId
             { $group: { _id: null, maxRound: { $max: '$round' } } }, // Find the max round
         ]);
@@ -229,7 +229,7 @@ async function getMaxRounds(req, res) {
 // Delete a game by ID
 async function deleteGame(req, res) {
     try {
-        const game = await gameService.deleteGame(req.params.id);
+        const game = await _deleteGame(req.params.id);
         if (!game) return res.status(404).json({ message: "Game not found" });
         res.status(200).json({ message: "Game deleted" });
     } catch (error) {
@@ -238,7 +238,7 @@ async function deleteGame(req, res) {
 }
 
 
-module.exports = {
+export default {
     createGame,
     getAllGames,
     getGameById,

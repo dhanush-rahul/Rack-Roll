@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import { Schema as _Schema, model } from 'mongoose';
+const Schema = _Schema;
 
 const scoresheetSchema = new Schema({
     games: [{ type: Schema.Types.ObjectId, ref: 'Game' }],
@@ -21,4 +21,4 @@ scoresheetSchema.methods.saveToCloud = function() {
     // Cloud storage logic (e.g., AWS S3 upload)
 };
 
-module.exports = mongoose.model('Scoresheet', scoresheetSchema);
+export default model('Scoresheet', scoresheetSchema);

@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import { Schema as _Schema, model } from 'mongoose';
+const Schema = _Schema;
 
 const leaderboardSchema = new Schema({
     division: { type: Schema.Types.ObjectId, ref: 'Division' },
@@ -7,4 +7,4 @@ const leaderboardSchema = new Schema({
     tournamentId: {type: Schema.Types.ObjectId, ref: 'Tournament', required: true}
 });
 
-module.exports = mongoose.model('Leaderboard', leaderboardSchema);
+export default model('Leaderboard', leaderboardSchema);

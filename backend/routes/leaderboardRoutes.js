@@ -1,6 +1,6 @@
-const express = require('express');
-const router = express.Router();
-const leaderboardController = require('../controllers/leaderboardController');
+import { Router } from 'express';
+const router = Router();
+import leaderboardController from '../controllers/leaderboardController';
 
 router.post('/', leaderboardController.createLeaderboard);
 router.get('/', leaderboardController.getAllLeaderboards);
@@ -8,4 +8,4 @@ router.get('/tournament/:tournamentId/division/:divisionId', leaderboardControll
 router.put('/:id', leaderboardController.updateLeaderboard);
 router.delete('/:id', leaderboardController.deleteLeaderboard);
 
-module.exports = router;
+export default router;

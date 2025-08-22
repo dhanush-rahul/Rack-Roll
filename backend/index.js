@@ -1,20 +1,22 @@
-require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const connectDB = require('./database');
+import express from 'express';
+import cors from 'cors';
+import { json } from 'body-parser';
+import connectDB from './database';
 // Import route modules
-const tournamentRoutes = require('./routes/tournamentRoutes');
-const divisionRoutes = require('./routes/divisionRoutes');
-const gameRoutes = require('./routes/gameRoutes');
-const leaderboardRoutes = require('./routes/leaderboardRoutes');
-const locationRoutes = require('./routes/locationRoutes');
-const playerRoutes = require('./routes/playerRoutes');
-const scoresheetRoutes = require('./routes/scoresheetRoutes');
+import tournamentRoutes from './routes/tournamentRoutes';
+import divisionRoutes from './routes/divisionRoutes';
+import gameRoutes from './routes/gameRoutes';
+import leaderboardRoutes from './routes/leaderboardRoutes';
+import locationRoutes from './routes/locationRoutes';
+import playerRoutes from './routes/playerRoutes';
+import scoresheetRoutes from './routes/scoresheetRoutes';
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(json());
+
+if(process.env.NODE_ENV !== 'production'){
+    require('dotenv').config(); // Load environment variables from .env file in development
+}
 
 const PORT = process.env.PORT || 5000;
 
@@ -29,7 +31,6 @@ app.use('/api/locations', locationRoutes);
 app.use('/api/players', playerRoutes);
 app.use('/api/scoresheets', scoresheetRoutes);
 
-// Basic route
 
 // Start server
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

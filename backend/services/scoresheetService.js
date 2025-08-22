@@ -1,4 +1,4 @@
-const Scoresheet = require('../models/Scoresheet');
+const Scoresheet = require('../models/Scoresheet').default;
 
 async function createScoresheet(data) {
     const scoresheet = new Scoresheet(data);

@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import { Schema as _Schema, model } from 'mongoose';
+const Schema = _Schema;
 
 const gameSchema = new Schema({
     player1: { type: Schema.Types.ObjectId, ref: 'Player', required: true },
@@ -33,4 +33,4 @@ gameSchema.set('toJSON', {
         return ret;
     },
 });
-module.exports = mongoose.model('Game', gameSchema);
+export default model('Game', gameSchema);

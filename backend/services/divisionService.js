@@ -1,4 +1,4 @@
-const Division = require('../models/Division');
+const Division = require('../models/Division').default;
 
 // Create a new division
 async function createDivision(divisionData) {

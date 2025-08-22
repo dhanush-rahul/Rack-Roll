@@ -1,16 +1,19 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const Game = require('../models/Game');
-const Location = require('../models/Location');
-const locationService = require('../services/locationService');
-const Player = require('../models/Player');
+import Game from '../models/Game';
+import Location from '../models/Location';
+import { createLocation as _createLocation, getLocationByEmail, getAllLocations as _getAllLocations, getLocationByCredentials as _getLocationByCredentials, updateLocation as _updateLocation, deleteLocation as _deleteLocation } from '../services/locationService';
+import { find } from '../models/Player';
 
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
+import { sign } from 'jsonwebtoken';
+
+if(process.env.NODE_ENV !== 'production'){
+    require('dotenv').config();
+}
 
 async function createLocation(req, res) {
     try {
-        const location = await locationService.createLocation(req.body);
+        const location = await _createLocation(req.body);
         res.status(201).json(location);
     } catch (error) {
         if(error.code === 11000){
@@ -26,7 +29,7 @@ async function signInLocation(req, res) {
 
     try {
         const { email, passKey } = req.body;
-        const location = await locationService.getLocationByEmail(email);
+        const location = await getLocationByEmail(email);
         if (!location) {
             return res.status(404).json({ message: "Location not found" });
         }
@@ -39,7 +42,7 @@ async function signInLocation(req, res) {
         }
 
         // Generate JWT token
-        const token = jwt.sign({ id: location._id, email: location.email }, process.env.JWT_SECRET, {
+        const token = sign({ id: location._id, email: location.email }, process.env.JWT_SECRET, {
             expiresIn: '1h', // Token expiry (optional)
         });
 
@@ -51,7 +54,7 @@ async function signInLocation(req, res) {
 
 async function getAllLocations(req, res) {
     try {
-        const locations = await locationService.getAllLocations();
+        const locations = await _getAllLocations();
         res.status(200).json(locations);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -60,7 +63,7 @@ async function getAllLocations(req, res) {
 
 async function getLocationByCredentials(req, res) {
     try {
-        const location = await locationService.getLocationByCredentials(req.body.location, req.body.passKey);
+        const location = await _getLocationByCredentials(req.body.location, req.body.passKey);
         if (!location) return res.status(404).json({ message: "Location not found" });
         res.status(200).json(location);
     } catch (error) {
@@ -77,7 +80,7 @@ async function getPlayersByLocation(req, res) {
         }
 
         // Fetch players based on location
-        const players = await Player.find({ location: locationId })
+        const players = await find({ location: locationId })
             .select('name handicap') // Select only necessary fields
             .lean();
 
@@ -94,7 +97,7 @@ async function getPlayersByLocation(req, res) {
 
 async function updateLocation(req, res) {
     try {
-        const location = await locationService.updateLocation(req.params.id, req.body);
+        const location = await _updateLocation(req.params.id, req.body);
         if (!location) return res.status(404).json({ message: "Location not found" });
         res.status(200).json(location);
     } catch (error) {
@@ -104,7 +107,7 @@ async function updateLocation(req, res) {
 
 async function deleteLocation(req, res) {
     try {
-        const location = await locationService.deleteLocation(req.params.id);
+        const location = await _deleteLocation(req.params.id);
         if (!location) return res.status(404).json({ message: "Location not found" });
         res.status(200).json({ message: "Location deleted" });
     } catch (error) {
@@ -112,7 +115,7 @@ async function deleteLocation(req, res) {
     }
 }
 
-module.exports = {
+export default {
     createLocation,
     getAllLocations,
     getLocationByCredentials,

@@ -1,6 +1,6 @@
-const express = require('express');
-const router = express.Router();
-const locationController = require('../controllers/locationController');
+import { Router } from 'express';
+const router = Router();
+import locationController from '../controllers/locationController';
 
 router.post('/', locationController.createLocation);
 router.get('/', locationController.getAllLocations);
@@ -10,4 +10,4 @@ router.post('/signin', locationController.signInLocation);
 router.put('/:id', locationController.updateLocation);
 router.delete('/:id', locationController.deleteLocation);
 
-module.exports = router;
+export default router;

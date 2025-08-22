@@ -1,5 +1,5 @@
-const Division = require('../models/Division');
-const Player = require('../models/Player');
+const Division = require('../models/Division').default;
+const Player = require('../models/Player').default;
 
 async function createPlayer(data) {
     const player = new Player(data);

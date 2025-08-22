@@ -1,14 +1,13 @@
-const Tournament = require('../models/Tournament');
-const tournamentService = require('../services/tournamentService');
-const Player = require('../models/Player');
-const gameService = require('../services/gameService');
-const divisionService = require('../services/divisionService');
-const Location = require('../models/Location');
-const Game = require('../models/Game');
+import { countDocuments, findById } from '../models/Tournament';
+import { createTournament as _createTournament, getAllTournaments as _getAllTournaments, getTournamentsByLocationId, getTournamentById as _getTournamentById, updateTournament as _updateTournament, deleteTournament as _deleteTournament, countTournamentsByLocationId } from '../services/tournamentService';
+import { createGames, getGamesByTournament } from '../services/gameService';
+import { createDivision } from '../services/divisionService';
+import { findById as _findById } from '../models/Location';
+import { insertMany } from '../models/Game';
 
 async function createTournament(req, res) {
     try {
-        const tournament = await tournamentService.createTournament(req.body);
+        const tournament = await _createTournament(req.body);
         res.status(201).json(tournament);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -17,7 +16,7 @@ async function createTournament(req, res) {
 
 async function getAllTournaments(req, res) {
     try {
-        const tournaments = await tournamentService.getAllTournaments();
+        const tournaments = await _getAllTournaments();
         res.status(200).json(tournaments);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -27,7 +26,7 @@ async function getAllTournaments(req, res) {
 async function getTournamentsByLocation(req, res) {
     try {
         const { locationId } = req.params;
-        const tournaments = await tournamentService.getTournamentsByLocationId(locationId);
+        const tournaments = await getTournamentsByLocationId(locationId);
         if (!tournaments || tournaments.length === 0) {
             return res.status(404).json({ message: "No tournaments found for this location." });
         }
@@ -39,7 +38,7 @@ async function getTournamentsByLocation(req, res) {
 
 async function getTournamentById(req, res) {
     try {
-        const tournament = await tournamentService.getTournamentById(req.params.id);
+        const tournament = await _getTournamentById(req.params.id);
         if (!tournament) {
             return res.status(404).json({ message: "Tournament not found" });
         }
@@ -51,7 +50,7 @@ async function getTournamentById(req, res) {
 
 async function updateTournament(req, res) {
     try {
-        const tournament = await tournamentService.updateTournament(req.params.id, req.body);
+        const tournament = await _updateTournament(req.params.id, req.body);
         if (!tournament) {
             return res.status(404).json({ message: "Tournament not found" });
         }
@@ -63,7 +62,7 @@ async function updateTournament(req, res) {
 
 async function deleteTournament(req, res) {
     try {
-        const tournament = await tournamentService.deleteTournament(req.params.id);
+        const tournament = await _deleteTournament(req.params.id);
         if (!tournament) {
             return res.status(404).json({ message: "Tournament not found" });
         }
@@ -76,7 +75,7 @@ async function deleteTournament(req, res) {
 async function getLocationTournamentCount(req, res) {
     try {
         const locationId = req.params.locationId;
-        const count = await Tournament.countDocuments({ locationId });
+        const count = await countDocuments({ locationId });
         return res.status(200).json({ count: count || 0 });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -87,7 +86,7 @@ async function addPlayerToTournament(req, res) {
     try {
         const { tournamentId } = req.params;
         const { playerId } = req.body;
-        const tournament = await Tournament.findById(tournamentId);
+        const tournament = await findById(tournamentId);
         if (!tournament) {
             return res.status(404).json({ message: 'Tournament not found' });
         }
@@ -106,11 +105,11 @@ async function createTournamentWithGames(req, res) {
 
     try {
         const { players, numDivisions, numGames, tournamentName, locationId } = req.body;
-        const result = await tournamentService.countTournamentsByLocationId(locationId);
+        const result = await countTournamentsByLocationId(locationId);
         const tournamentCount = result.length > 0 ? result[0].tournamentCount : 0;
         const name = `${tournamentName} ${tournamentCount + 1}`;
         console.log(players);
-        const newTournament = await tournamentService.createTournament({
+        const newTournament = await _createTournament({
             tournamentName: name,
             date: new Date(),
             locationId,
@@ -126,7 +125,7 @@ async function createTournamentWithGames(req, res) {
 
         for (let i = 0; i < numDivisions; i++) {
             const divisionPlayers = players.slice(i * divisionSize, (i + 1) * divisionSize);
-            const division = await divisionService.createDivision({
+            const division = await createDivision({
                 name: `Division ${i + 1}`,
                 players: divisionPlayers,
                 tournamentId: newTournament._id,
@@ -144,11 +143,11 @@ async function createTournamentWithGames(req, res) {
         const crossoverGames = generateCrossoverMatches(allByes, numGames, newTournament._id);
         allGames.push(...crossoverGames);
         newTournament.divisions = divisionIds;
-        const savedGames = await gameService.createGames(allGames);
+        const savedGames = await createGames(allGames);
 
         newTournament.games = savedGames.map((game) => game._id);
         await newTournament.save();
-        const location = await Location.findById(locationId);
+        const location = await _findById(locationId);
         if (!location) throw new Error('Location not found');
         location.tournaments.push(newTournament._id);
         await location.save();
@@ -240,7 +239,7 @@ function generateCrossoverMatches(allByes, numGames, tournamentId) {
 async function getScoresheet(req, res) {
     try {
         const { tournamentId } = req.params;
-        const games = await gameService.getGamesByTournament(tournamentId);
+        const games = await getGamesByTournament(tournamentId);
         const rounds = {};
         games.forEach((game) => {
             if (!rounds[game.round]) rounds[game.round] = [];
@@ -259,7 +258,7 @@ async function getScoresheet(req, res) {
 async function getTournamentDetails(req, res) {
     try {
         const { id } = req.params;
-        const tournament = await Tournament.findById(id)
+        const tournament = await findById(id)
             .populate('players')
             .populate('games')
             .populate({
@@ -283,7 +282,7 @@ async function addRound(req, res) {
         const { divisionId, isCrossover } = req.body;
 
         // Fetch the tournament details
-        const tournament = await Tournament.findById(tournamentId)
+        const tournament = await findById(tournamentId)
             .populate('divisions')
             .populate('games');
 
@@ -338,14 +337,14 @@ async function addRound(req, res) {
         }
 
         // Save new games to the database
-        const savedGames = await Game.insertMany(newGames);
+        const savedGames = await insertMany(newGames);
 
         // Update tournament games
         tournament.games.push(...savedGames.map((game) => game._id));
         await tournament.save();
 
         // Respond with the updated tournament details
-        const updatedTournament = await Tournament.findById(tournamentId)
+        const updatedTournament = await findById(tournamentId)
             .populate('divisions')
             .populate('games');
         res.status(200).json({
@@ -362,7 +361,7 @@ async function addRound(req, res) {
 }
 
 
-module.exports = {
+export default {
     createTournament,
     getAllTournaments,
     getTournamentById,

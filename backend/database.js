@@ -1,9 +1,12 @@
-const mongoose = require('mongoose');
-require('dotenv').config(); // Load environment variables
+import { connect } from 'mongoose';
+
+if(process.env.NODE_ENV !== 'production'){
+    require('dotenv').config(); // Load environment variables from .env file in development
+}
 
 const connectDB = async () => {
     try {
-        await mongoose.connect(process.env.MONGODB_URI, {
+        await connect(process.env.MONGODB_URI, {
             useNewUrlParser: true,
             useUnifiedTopology: true,
         });
@@ -14,4 +17,4 @@ const connectDB = async () => {
     }
 };
 
-module.exports = connectDB;
+export default connectDB;

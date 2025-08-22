@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import { Schema as _Schema, model } from 'mongoose';
+const Schema = _Schema;
 
 const divisionSchema = new Schema({
     name: { type: String, required: true },
@@ -8,4 +8,4 @@ const divisionSchema = new Schema({
     tournamentId: { type: String, required: true},
 });
 
-module.exports = mongoose.model('Division', divisionSchema);
+export default model('Division', divisionSchema);

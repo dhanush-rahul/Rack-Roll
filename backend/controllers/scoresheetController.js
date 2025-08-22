@@ -1,8 +1,8 @@
-const scoresheetService = require('../services/scoresheetService');
+import { createScoresheet as _createScoresheet, getAllScoresheets as _getAllScoresheets, getScoresheetById as _getScoresheetById, updateScoresheet as _updateScoresheet, deleteScoresheet as _deleteScoresheet } from '../services/scoresheetService';
 
 async function createScoresheet(req, res) {
     try {
-        const scoresheet = await scoresheetService.createScoresheet(req.body);
+        const scoresheet = await _createScoresheet(req.body);
         res.status(201).json(scoresheet);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -11,7 +11,7 @@ async function createScoresheet(req, res) {
 
 async function getAllScoresheets(req, res) {
     try {
-        const scoresheets = await scoresheetService.getAllScoresheets();
+        const scoresheets = await _getAllScoresheets();
         res.status(200).json(scoresheets);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -20,7 +20,7 @@ async function getAllScoresheets(req, res) {
 
 async function getScoresheetById(req, res) {
     try {
-        const scoresheet = await scoresheetService.getScoresheetById(req.params.id);
+        const scoresheet = await _getScoresheetById(req.params.id);
         if (!scoresheet) return res.status(404).json({ message: "Scoresheet not found" });
         res.status(200).json(scoresheet);
     } catch (error) {
@@ -30,7 +30,7 @@ async function getScoresheetById(req, res) {
 
 async function updateScoresheet(req, res) {
     try {
-        const scoresheet = await scoresheetService.updateScoresheet(req.params.id, req.body);
+        const scoresheet = await _updateScoresheet(req.params.id, req.body);
         if (!scoresheet) return res.status(404).json({ message: "Scoresheet not found" });
         res.status(200).json(scoresheet);
     } catch (error) {
@@ -40,7 +40,7 @@ async function updateScoresheet(req, res) {
 
 async function deleteScoresheet(req, res) {
     try {
-        const scoresheet = await scoresheetService.deleteScoresheet(req.params.id);
+        const scoresheet = await _deleteScoresheet(req.params.id);
         if (!scoresheet) return res.status(404).json({ message: "Scoresheet not found" });
         res.status(200).json({ message: "Scoresheet deleted" });
     } catch (error) {
@@ -48,7 +48,7 @@ async function deleteScoresheet(req, res) {
     }
 }
 
-module.exports = {
+export default {
     createScoresheet,
     getAllScoresheets,
     getScoresheetById,

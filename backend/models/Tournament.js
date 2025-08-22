@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import { Schema as _Schema, model } from 'mongoose';
+const Schema = _Schema;
 
 const tournamentSchema = new Schema({
     tournamentName: { type: String, required: true },
@@ -12,5 +12,5 @@ const tournamentSchema = new Schema({
     numGamesPerMatchup: { type: Number, required: true }, // Store the number of games to be played for each matchup
 });
 
-module.exports = mongoose.model('Tournament', tournamentSchema);
+export default model('Tournament', tournamentSchema);
  

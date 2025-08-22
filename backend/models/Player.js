@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import { Schema as _Schema, model } from 'mongoose';
+const Schema = _Schema;
 
 const playerSchema = new Schema({
     name: { type: String, required: true, unique: true },
@@ -11,4 +11,4 @@ const playerSchema = new Schema({
 // Compound index for unique name and location
 playerSchema.index({ name: 1, location: 1 }, { unique: true });
 
-module.exports = mongoose.model('Player', playerSchema);
+export default model('Player', playerSchema);

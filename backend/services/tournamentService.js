@@ -1,4 +1,4 @@
-const Tournament = require('../models/Tournament');
+const Tournament = require('../models/Tournament').default;
 const mongoose = require('mongoose');
 // Create a new tournament
 async function createTournament(tournamentData) {

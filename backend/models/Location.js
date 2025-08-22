@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import { Schema as _Schema, model } from 'mongoose';
+const Schema = _Schema;
 
 const locationSchema = new Schema({
     location: { type: String, required: true, unique: true },
@@ -9,4 +9,4 @@ const locationSchema = new Schema({
     tournaments: [{ type: Schema.Types.ObjectId, ref: 'Tournament' }]
 });
 
-module.exports = mongoose.model('Location', locationSchema);
+export default model('Location', locationSchema);
