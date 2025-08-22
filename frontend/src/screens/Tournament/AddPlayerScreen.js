@@ -10,10 +10,10 @@ import {
     TouchableOpacity,
     Switch,
 } from 'react-native';
-import PlayerModal from './PlayerModal';
-import { fetchPlayers, addNewPlayer } from './playerUtils';
-import { addTournament } from '../services/api';
-import { CommonActions } from '@react-navigation/native';
+import PlayerModal from '../Shared/PlayerModal';
+import { fetchPlayers, addNewPlayer } from '../../utils/playerUtils';
+import { addTournament } from '../../services/api';
+import { CommonActions, useNavigationState } from '@react-navigation/native';
 
 const AddPlayerScreen = ({ route, navigation }) => {
     const { numPlayers, numDivisions, numGames } = route.params;
@@ -24,6 +24,8 @@ const AddPlayerScreen = ({ route, navigation }) => {
     const [newPlayerName, setNewPlayerName] = useState('');
     const [newPlayerHandicap, setNewPlayerHandicap] = useState('');
     const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
+    const navState = useNavigationState(state => state);
+    console.log('Current Navigation State:', JSON.stringify(navState, null, 2));
 
     useEffect(() => {
         fetchPlayers(setAllPlayers, setFilteredPlayers);
@@ -75,8 +77,9 @@ const AddPlayerScreen = ({ route, navigation }) => {
             const players = shuffle
                 ? [...selectedPlayers].sort(() => Math.random() - 0.5)
                 : selectedPlayers;
+            const createdBy = await AsyncStorage.getItem('authToken'); // Use user token as ID
 
-            await addTournament(players, numDivisions, numGames);
+            await addTournament(players, numDivisions, numGames, createdBy);
             Alert.alert('Success', 'Tournament created successfully!');
             navigation.dispatch(
                 CommonActions.reset({

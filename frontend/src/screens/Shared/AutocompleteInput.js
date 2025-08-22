@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import Autocomplete from 'react-native-autocomplete-input';
-import { searchPlayers } from '../services/api';
+import { searchPlayers } from '../../services/api';
 
 const AutocompleteInput = ({ onSelectPlayer, maxPlayers, selectedPlayers }) => {
     const [query, setQuery] = useState('');

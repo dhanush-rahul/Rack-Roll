@@ -50,6 +50,7 @@ async function signInLocation(req, res) {
 }
 
 async function getAllLocations(req, res) {
+    console.log("Getting all locations");
     try {
         const locations = await locationService.getAllLocations();
         res.status(200).json(locations);

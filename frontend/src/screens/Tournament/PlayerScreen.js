@@ -10,9 +10,9 @@ import {
     Animated,
     TextInput,
 } from 'react-native';
-import { updatePlayerHandicap } from '../services/api'; // Ensure you have your API service set up
-import PlayerModal from './PlayerModal';
-import { fetchPlayers, addNewPlayer } from './playerUtils';
+import { updatePlayerHandicap } from '../../services/api'; // Ensure you have your API service set up
+import PlayerModal from '../Shared/PlayerModal';
+import { fetchPlayers, addNewPlayer } from '../../utils/playerUtils';
 const calculateNewHandicap = (scores, currentHandicap) => {
     if (scores.length === 0) {
         return currentHandicap.toFixed(1); // No scores to adjust

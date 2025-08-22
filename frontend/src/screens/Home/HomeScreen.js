@@ -6,7 +6,7 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.container}>
             {/* Illustration */}
             <Image
-                source={require('../../assets/download.jpeg')} // Replace with your local image path
+                source={require('../../../assets/download.jpeg')} // Replace with your local image path
                 style={styles.image}
                 resizeMode="contain"
             />

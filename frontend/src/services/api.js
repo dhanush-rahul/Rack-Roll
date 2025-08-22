@@ -4,7 +4,7 @@ import { Alert } from 'react-native';
 
 const api = axios.create({
     baseURL: 'https://api.dhanushcharipally.com/api', // Replace with your backend URL
-    // baseURL:'http://192.168.2.20:5000/api',
+    // baseURL:'http://10.0.0.215:5000/api',
     headers:{
         'Content-Type': 'application/json',
     }
@@ -12,14 +12,34 @@ const api = axios.create({
 
 // Account-related API calls
 export const createAccount = async (data) => {
-    return await api.post('/locations/', data);
+    return await api.post('/users/signup', data);
 };
 
 export const signIn = async (data) => {
-    return await api.post('/locations/signin', data); // Endpoint for sign-in
+    return await api.post('/users/signin', data); // Endpoint for sign-in
 };
 
-// Tournament-related API calls
+export const getCurrentUser = async() =>{
+    try {
+        const token = await AsyncStorage.getItem('authToken'); // Retrieve token
+
+        if (!token) {
+            console.warn("No auth token found.");
+            return null;
+        }
+
+        // Call the API
+        const response = await api.get('/users/current', {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        return null;
+    }
+}
+ // Tournament-related API calls
 export const getTournaments = async () => {
     const response = await api.get('/tournaments');
     return response.data;
@@ -27,7 +47,7 @@ export const getTournaments = async () => {
 export const getTournamentsByLocation = async (locationId) => {
     const response = await api.get(`/tournaments/location/${locationId}`);
     return response.data;
-}
+};
 export const createTournament = async (data) => {
     return await api.post('/tournaments', data);
 };
@@ -35,6 +55,18 @@ export const createTournament = async (data) => {
 export const getLocationTournamentCount = async (locationId) => {
     const response = await api.get(`/tournaments/count/location/${locationId}`);
     return response.data.count;
+};
+
+export const getAllLocations = async () => {
+    try {
+        console.log("Fetching locations..."); // Log before calling API
+        const response = await api.get('/locations');
+        console.log("Locations fetched:", response.data); // Log success response
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching locations:", error.response ? error.response.data : error.message);
+        throw error;
+    }
 };
 
 // Location-related API calls
@@ -95,14 +127,15 @@ export const createGame = async (gameData) => {
     }
 };
 
-export const addTournament = async (players, numDivisions, numGames) => {
+export const addTournament = async (players, numDivisions, numGames, createdBy) => {
     // console.log(players);
     const data = {
         players,
         numDivisions,
         numGames,
         tournamentName: `Tournament #`,
-        locationId: await AsyncStorage.getItem('locationId'), // Retrieve location ID
+        locationId: await AsyncStorage.getItem('locationId'), // Retrieve location ID,
+        createdBy
     };
     return await api.post('/tournaments/create-with-games', data); // Update endpoint accordingly
 };

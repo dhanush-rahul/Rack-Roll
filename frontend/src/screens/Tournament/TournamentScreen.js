@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { deleteTournamentApi, getTournamentsByLocation } from '../services/api';
-import CustomFloatingMenu from './CustomFloatingMenu';
+import { deleteTournamentApi, getTournamentsByLocation } from '../../services/api';
+import BottomNavigation from '../Home/BottomNavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TournamentsScreen = () => {
@@ -51,7 +51,7 @@ const TournamentsScreen = () => {
                         onPress={() => deleteTournament(item._id)}
                         activeOpacity={0.7}
                     >
-                        <Image source={require('./../../assets/delete_icon.png')} style={{ width: 26, height: 26 }} />
+                        <Image source={require('../../../assets/delete_icon.png')} style={{ width: 26, height: 26 }} />
                     </TouchableOpacity>
                 </View>
                 <Text style={styles.gamesText}>Total Games: {item.totalGames}</Text>
@@ -72,7 +72,7 @@ const TournamentsScreen = () => {
                 renderItem={renderTournamentCard}
                 contentContainerStyle={styles.listContent}
             />
-            <CustomFloatingMenu />
+            <BottomNavigation />
         </View>
     );
 };

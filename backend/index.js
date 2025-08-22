@@ -12,6 +12,9 @@ const leaderboardRoutes = require('./routes/leaderboardRoutes');
 const locationRoutes = require('./routes/locationRoutes');
 const playerRoutes = require('./routes/playerRoutes');
 const scoresheetRoutes = require('./routes/scoresheetRoutes');
+const tableRoutes = require('./routes/tableRoutes');
+const userRoutes = require('./routes/userRoutes');
+
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
@@ -28,7 +31,8 @@ app.use('/api/leaderboards', leaderboardRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/api/players', playerRoutes);
 app.use('/api/scoresheets', scoresheetRoutes);
-
+app.use('/api/bookings', tableRoutes);
+app.use('/api/users', userRoutes);
 // Basic route
 
 // Start server

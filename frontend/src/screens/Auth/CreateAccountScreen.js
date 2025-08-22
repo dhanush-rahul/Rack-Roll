@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
-import { createAccount } from '../services/api'; // Import the API function
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { createAccount, getAllLocations } from '../../services/api'; // Import the API function
+import { Picker } from '@react-native-picker/picker'; // Import Picker for dropdown
 
 const CreateAccountScreen = ({ navigation }) => {
     // Local state to manage form fields
@@ -8,18 +9,40 @@ const CreateAccountScreen = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [location, setLocation] = useState('');
+    const [locations, setLocations] = useState([]);
+
+    // Fetch locations from API when the component mounts
+    useEffect(() => {
+        console.log("Hello")
+        const fetchLocations = async () => {
+            try {
+                const data = await getAllLocations();
+                // console.log(data);
+                setLocations(data);
+            } catch (error) {
+                console.error("Error fetching locations:", error);
+            }
+        };
+        fetchLocations();
+    }, []);
 
     // Handle form submission
     const handleSignup = async () => {
+        if (!location) {
+            Alert.alert("Error", "Please select a location.");
+            return;
+        }
+
         try {
             // Form data to send to the backend
             const data = {
                 name: playerName,
                 email: email.toLowerCase(),
-                passKey: password,
-                location,
+                password,
+                locationId: location,
+                role: 'user'
             };
-
+            console.log(location)
             // Call the API to create an account
             const response = await createAccount(data);
 
@@ -35,8 +58,6 @@ const CreateAccountScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-           
-
             {/* Title */}
             <Text style={styles.title}>Rack-N-Roll</Text>
 
@@ -61,12 +82,25 @@ const CreateAccountScreen = ({ navigation }) => {
                 value={password}
                 onChangeText={setPassword}
             />
-            <TextInput
-                style={styles.input}
-                placeholder="Location"
-                value={location}
-                onChangeText={setLocation}
-            />
+
+            {/* Location Picker Dropdown */}
+            <Text style={styles.label}>Select Your Home Location</Text>
+            <View style={styles.pickerContainer}>
+                <Picker
+                    selectedValue={location}
+                    onValueChange={(itemValue) => setLocation(itemValue)}
+                    style={styles.picker}
+                >
+                    <Picker.Item label="Select a Dooly's Location" value="" />
+                    {locations.map((loc) => (
+                        <Picker.Item 
+                            key={loc._id} 
+                            label={`${loc.name} - ${loc.address}`} 
+                            value={loc._id} 
+                        />
+                    ))}
+                </Picker>
+            </View>
 
             {/* Signup Button */}
             <TouchableOpacity style={styles.button} onPress={handleSignup}>
@@ -86,22 +120,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#e8f7fa',
         padding: 20,
     },
-    image: {
-        width: 120,
-        height: 120,
-        marginBottom: 20,
-    },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
         color: '#333',
-        textAlign: 'center',
-        top: -20,
-        marginTop: 10,
-    },
-    subtitle: {
-        fontSize: 16,
-        color: '#666',
         textAlign: 'center',
         marginBottom: 20,
     },
@@ -114,6 +136,25 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         marginVertical: 8,
         backgroundColor: '#fff',
+    },
+    label: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginTop: 10,
+        marginBottom: 5,
+        color: '#333',
+    },
+    pickerContainer: {
+        width: '100%',
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 5,
+        backgroundColor: '#fff',
+        marginBottom: 15,
+    },
+    picker: {
+        width: '100%',
+        height: 50,
     },
     button: {
         backgroundColor: '#83c985',

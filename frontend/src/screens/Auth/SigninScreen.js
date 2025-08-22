@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
-import { signIn } from '../services/api'; // Import sign-in API function
+import { signIn } from '../../services/api'; // Import sign-in API function
 import AsyncStorage from '@react-native-async-storage/async-storage'; // To store token locally
 import { useNavigation, CommonActions } from '@react-navigation/native';
 
@@ -11,7 +11,7 @@ const SigninScreen = ({navigation}) => {
     // const navigation = useNavigation();
     const handleSignin = async () => {
         try {
-            const data = { email: email.toLowerCase(), passKey: password };
+            const data = { email: email.toLowerCase(), password: password };
             const response = await signIn(data);
 
             if (response.status === 200) {
@@ -19,14 +19,15 @@ const SigninScreen = ({navigation}) => {
 
                 // Store token in AsyncStorage (or any other storage method)
                 await AsyncStorage.setItem('authToken', token);
-                await AsyncStorage.setItem('locationId', locationId);
+                // await AsyncStorage.setItem('locationId', locationId);
+                // await AsyncStorage.setItem('currentUser', user)
                 Alert.alert('Success', 'Signed in successfully');
                 // Navigate to a protected screen or home screen
                 
                 navigation.dispatch(
                     CommonActions.reset({
                         index: 0,
-                        routes: [{ name: 'Tournament' }], // Replace 'Home' with the name of your home screen
+                        routes: [{ name: 'Main' }], // Replace 'Home' with the name of your home screen
                     })
                 );
                 // navigation.replace('Tournament');
@@ -41,7 +42,7 @@ const SigninScreen = ({navigation}) => {
         <View style={styles.container}>
             {/* Illustration */}
             <Image
-                source={require('../../assets/download.jpeg')} // Replace with the path to your image
+                source={require('../../../assets/download.jpeg')} // Replace with the path to your image
                 style={styles.image}
                 resizeMode="contain"
             />

@@ -105,27 +105,38 @@ async function addPlayerToTournament(req, res) {
 async function createTournamentWithGames(req, res) {
 
     try {
-        const { players, numDivisions, numGames, tournamentName, locationId } = req.body;
-        const result = await tournamentService.countTournamentsByLocationId(locationId);
-        const tournamentCount = result.length > 0 ? result[0].tournamentCount : 0;
-        const name = `${tournamentName} ${tournamentCount + 1}`;
-        console.log(players);
-        const newTournament = await tournamentService.createTournament({
-            tournamentName: name,
+        const { players, numDivisions, numGames, tournamentName, locationId, createdBy, divisionSizes } = req.body;
+        // const result = await tournamentService.countTournamentsByLocationId(locationId);
+        // const tournamentCount = result.length > 0 ? result[0].tournamentCount : 0;
+        // const name = `${tournamentName} ${tournamentCount + 1}`;
+        // console.log(players);
+        const location = await Location.findById(locationId);
+        if (!location) throw new Error('Location not found');
+        if (!Array.isArray(divisionSizes) || divisionSizes.length !== numDivisions) {
+            return res.status(400).json({ message: 'Invalid divisionSizes. Must match numDivisions.' });
+        }
+        const totalPlayers = divisionSizes.reduce((sum, size) => sum + size, 0);
+        if (totalPlayers !== players.length) {
+            return res.status(400).json({ message: 'Sum of division sizes must equal the number of players.' });        }
+        const newTournament = new Tournament({
+            tournamentName,
             date: new Date(),
             locationId,
+            createdBy,
             players,
             numDivisions,
-            numGamesPerMatchup: numGames,
+            numGamesPerMatchup: numGames
         });
-        console.log("Created New Tournament")
-        const divisionSize = Math.ceil(players.length / numDivisions);
+        // const divisionSize = Math.ceil(players.length / numDivisions);
         const divisionIds = [];
         const allGames = [];
         const allByes = [];
+        let playerIndex = 0;
 
         for (let i = 0; i < numDivisions; i++) {
-            const divisionPlayers = players.slice(i * divisionSize, (i + 1) * divisionSize);
+            const divisionPlayers = players.slice(playerIndex, playerIndex + divisionSizes[i]);
+            playerIndex += divisionSizes[i];
+
             const division = await divisionService.createDivision({
                 name: `Division ${i + 1}`,
                 players: divisionPlayers,
@@ -148,8 +159,7 @@ async function createTournamentWithGames(req, res) {
 
         newTournament.games = savedGames.map((game) => game._id);
         await newTournament.save();
-        const location = await Location.findById(locationId);
-        if (!location) throw new Error('Location not found');
+        
         location.tournaments.push(newTournament._id);
         await location.save();
         res.status(201).json({ message: 'Tournament and games created successfully!' });

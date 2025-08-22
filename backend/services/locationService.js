@@ -6,7 +6,7 @@ async function createLocation(data) {
 }
 
 async function getAllLocations() {
-    return await Location.find().populate('tournaments');
+    return await Location.find();
 }
 
 async function getLocationByCredentials(locationName, passKey) {

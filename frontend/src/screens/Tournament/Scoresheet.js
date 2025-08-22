@@ -11,7 +11,7 @@ import {
   Platform,
   Alert
 } from 'react-native';
-import { fetchMaxRoundsAPI, getLeaderboardData, getTournamentDetails, updateGameWithId, updateTournamentGames } from '../services/api';
+import { fetchMaxRoundsAPI, getLeaderboardData, getTournamentDetails, updateGameWithId, updateTournamentGames } from '../../services/api';
 
 const ScoresheetScreen = ({ route }) => {
   const { tournamentId } = route.params;
