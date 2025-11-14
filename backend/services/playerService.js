@@ -1,5 +1,5 @@
-const Division = require('../models/Division').default;
-const Player = require('../models/Player').default;
+import Division from '../models/Division.js';
+import Player from '../models/Player.js';
 
 async function createPlayer(data) {
     const player = new Player(data);
@@ -29,7 +29,17 @@ async function getPlayerDivision(playerId, tournamentId) {
 
     return division ? division._id : null;
 }
-module.exports = {
+export default {
+    createPlayer,
+    getAllPlayers,
+    getPlayerById,
+    updatePlayer,
+    deletePlayer,
+    getPlayerDivision
+};
+
+// Also provide named exports
+export {
     createPlayer,
     getAllPlayers,
     getPlayerById,

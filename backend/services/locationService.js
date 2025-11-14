@@ -1,4 +1,4 @@
-const Location = require('../models/Location').default;
+import Location from '../models/Location.js';
 
 async function createLocation(data) {
     const location = new Location(data);
@@ -25,7 +25,7 @@ async function getLocationByEmail(email) {
 }
 
 
-module.exports = {
+export {
     createLocation,
     getAllLocations,
     getLocationByCredentials,

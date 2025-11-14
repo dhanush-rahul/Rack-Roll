@@ -1,9 +1,9 @@
-import { default as mongoose } from 'mongoose';
-import { aggregate } from '../models/Game';
-import Leaderboard from '../models/Leaderboard';
-import { createGame as _createGame, getAllGames as _getAllGames, getGameById as _getGameById, updateGame as _updateGame, deleteGame as _deleteGame } from '../services/gameService';
-import { getLeaderboard } from '../services/leaderboardService';
-import { getPlayerById, getPlayerDivision } from '../services/playerService';
+import mongoose from 'mongoose';
+import Game from '../models/Game.js';
+import Leaderboard from '../models/Leaderboard.js';
+import { createGame as _createGame, getAllGames as _getAllGames, getGameById as _getGameById, updateGame as _updateGame, deleteGame as _deleteGame } from '../services/gameService.js';
+import { getLeaderboard } from '../services/leaderboardService.js';
+import { getPlayerById, getPlayerDivision } from '../services/playerService.js';
 
 // Create a new game
 async function createGame(req, res) {
@@ -212,7 +212,7 @@ async function getMaxRounds(req, res) {
         const objectIdTournamentId = new mongoose.Types.ObjectId(tournamentId);
 
         // Query to find the maximum round for the given tournament
-        const result = await aggregate([
+        const result = await Game.aggregate([
             { $match: { tournamentId: objectIdTournamentId } }, // Filter by tournamentId
             { $group: { _id: null, maxRound: { $max: '$round' } } }, // Find the max round
         ]);

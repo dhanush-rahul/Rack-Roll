@@ -19,7 +19,7 @@ const HomeScreen = ({ navigation }) => {
 
             {/* Buttons */}
             <View style={styles.buttonContainer}>
-                <TouchableOpacity style={styles.signInButton} onPress={() => navigation.navigate('Signin')}>
+                <TouchableOpacity style={styles.signInButton} onPress={() => navigation.navigate('Tournament')}>
                     <Text style={styles.buttonText}>Sign in</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.createAccountButton} onPress={() => navigation.navigate('CreateAccount')}>

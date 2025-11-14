@@ -1,4 +1,4 @@
-const Division = require('../models/Division').default;
+import Division from '../models/Division.js';
 
 // Create a new division
 async function createDivision(divisionData) {
@@ -26,7 +26,16 @@ async function deleteDivision(id) {
     return await Division.findByIdAndDelete(id);
 }
 
-module.exports = {
+export default {
+    createDivision,
+    getAllDivisions,
+    getDivisionById,
+    updateDivision,
+    deleteDivision
+};
+
+// Also provide named exports for convenience
+export {
     createDivision,
     getAllDivisions,
     getDivisionById,

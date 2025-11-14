@@ -16,12 +16,15 @@ import { addTournament } from '../services/api';
 import { CommonActions } from '@react-navigation/native';
 
 const AddPlayerScreen = ({ route, navigation }) => {
-    const { numPlayers, numDivisions, numGames } = route.params;
+    const { numPlayers: numPlayersParam, numDivisions: numDivisionsParam, numGames: numGamesParam } = route.params;    const numPlayers = Number(numPlayersParam) || 0;
+    const numDivisions = Number(numDivisionsParam) || 0;
+    const numGames = Number(numGamesParam) || 0;
     const [allPlayers, setAllPlayers] = useState([]);
     const [filteredPlayers, setFilteredPlayers] = useState([]);
     const [selectedPlayers, setSelectedPlayers] = useState([]);
     const [shuffle, setShuffle] = useState(false);
     const [newPlayerName, setNewPlayerName] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
     const [newPlayerHandicap, setNewPlayerHandicap] = useState('');
     const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
 
@@ -96,8 +99,11 @@ const AddPlayerScreen = ({ route, navigation }) => {
             <View style={styles.searchContainer}>
                 <TextInput
                     style={styles.searchInput}
-                    value={newPlayerName}
-                    onChangeText={handleSearch}
+                    value={searchQuery}
+                    onChangeText={(text) => {
+                        setSearchQuery(text);
+                        handleSearch(text);
+                    }}
                     placeholder="Search players..."
                 />
                 <TouchableOpacity
@@ -175,6 +181,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
+        marginBottom: 30,
     },
     searchContainer: {
         flexDirection: 'row',

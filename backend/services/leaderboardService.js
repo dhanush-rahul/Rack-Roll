@@ -1,4 +1,4 @@
-const Leaderboard = require('../models/Leaderboard').default;
+import Leaderboard from '../models/Leaderboard.js';
 
 async function createLeaderboard(data) {
     const leaderboard = new Leaderboard(data);
@@ -24,7 +24,17 @@ async function deleteLeaderboard(id) {
     return await Leaderboard.findByIdAndDelete(id);
 }
 
-module.exports = {
+export default {
+    createLeaderboard,
+    getAllLeaderboards,
+    getLeaderboardById,
+    updateLeaderboard,
+    deleteLeaderboard,
+    getLeaderboard
+};
+
+// Also provide named exports
+export {
     createLeaderboard,
     getAllLeaderboards,
     getLeaderboardById,

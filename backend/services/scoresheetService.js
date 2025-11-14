@@ -1,4 +1,4 @@
-const Scoresheet = require('../models/Scoresheet').default;
+import Scoresheet from '../models/Scoresheet.js';
 
 async function createScoresheet(data) {
     const scoresheet = new Scoresheet(data);
@@ -21,7 +21,16 @@ async function deleteScoresheet(id) {
     return await Scoresheet.findByIdAndDelete(id);
 }
 
-module.exports = {
+export default {
+    createScoresheet,
+    getAllScoresheets,
+    getScoresheetById,
+    updateScoresheet,
+    deleteScoresheet
+};
+
+// Also provide named exports
+export {
     createScoresheet,
     getAllScoresheets,
     getScoresheetById,

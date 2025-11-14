@@ -1,6 +1,6 @@
 import { Router } from 'express';
 const router = Router();
-import gameController from '../controllers/gameController';
+import gameController from '../controllers/gameController.js';
 
 router.post('/', gameController.createGame);
 router.get('/max-rounds', gameController.getMaxRounds)

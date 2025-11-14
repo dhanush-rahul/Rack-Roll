@@ -1,5 +1,6 @@
-const Tournament = require('../models/Tournament').default;
-const mongoose = require('mongoose');
+import Tournament from '../models/Tournament.js';
+import { Types, isValidObjectId } from 'mongoose';
+
 // Create a new tournament
 async function createTournament(tournamentData) {
     const tournament = new Tournament(tournamentData);
@@ -68,7 +69,7 @@ async function getAllTournaments() {
     ]);
 }
 async function getTournamentsByLocationId(locationId) {
-    const objectId = new mongoose.Types.ObjectId(locationId);
+    const objectId = new Types.ObjectId(locationId);
 
     return await Tournament.aggregate([
         // Match tournaments with the specified locationId
@@ -149,7 +150,7 @@ async function getTournamentsByLocationId(locationId) {
 }
 
 async function countTournamentsByLocationId(locationId) {
-    const locationIdObject = mongoose.isValidObjectId(locationId) ? new mongoose.Types.ObjectId(locationId) : locationId;
+    const locationIdObject = isValidObjectId(locationId) ? new Types.ObjectId(locationId) : locationId;
     return await Tournament.aggregate([
         // Match tournaments with the specified locationId
         {
@@ -179,7 +180,9 @@ async function deleteTournament(id) {
     return await Tournament.findByIdAndDelete(id);
 }
 
-module.exports = {
+
+// Also provide named exports so callers can import functions directly
+export {
     createTournament,
     getAllTournaments,
     getTournamentById,

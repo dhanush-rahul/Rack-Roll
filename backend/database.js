@@ -1,15 +1,8 @@
 import { connect } from 'mongoose';
 
-if(process.env.NODE_ENV !== 'production'){
-    require('dotenv').config(); // Load environment variables from .env file in development
-}
-
 const connectDB = async () => {
     try {
-        await connect(process.env.MONGODB_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
+        await connect(process.env.MONGODB_URI);
         console.log('MongoDB connected');
     } catch (error) {
         console.error('MongoDB connection error:', error);

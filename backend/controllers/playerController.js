@@ -1,8 +1,8 @@
-const Game = require('../models/Game').default;
-const Player = require('../models/Player').default;
-const Location = require('../models/Location').default;
-const Tournament = require('../models/Tournament').default;
-const playerService = require('../services/playerService');
+import Game from '../models/Game.js';
+import Player from '../models/Player.js';
+import Location from '../models/Location.js';
+import Tournament from '../models/Tournament.js';
+import * as playerService from '../services/playerService.js';
 
 async function createPlayer(req, res) {
     try {
@@ -150,7 +150,18 @@ async function getPlayersByLocation(req, res) {
     }
 }
 
-module.exports = {
+export default {
+    createPlayer,
+    getAllPlayers,
+    getPlayerById,
+    updatePlayer,
+    deletePlayer,
+    searchPlayers,
+    getPlayersByLocation,
+};
+
+// Also provide named exports for convenience
+export {
     createPlayer,
     getAllPlayers,
     getPlayerById,

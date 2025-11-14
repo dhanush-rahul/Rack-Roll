@@ -1,6 +1,6 @@
 import { Router } from 'express';
 const router = Router();
-import locationController from '../controllers/locationController';
+import locationController from '../controllers/locationController.js';
 
 router.post('/', locationController.createLocation);
 router.get('/', locationController.getAllLocations);

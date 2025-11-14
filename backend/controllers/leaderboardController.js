@@ -1,5 +1,4 @@
-import Leaderboard from '../models/Leaderboard';
-import { createLeaderboard as _createLeaderboard, getAllLeaderboards as _getAllLeaderboards, getLeaderboard as _getLeaderboard, updateLeaderboard as _updateLeaderboard, deleteLeaderboard as _deleteLeaderboard } from '../services/leaderboardService';
+import { createLeaderboard as _createLeaderboard, getAllLeaderboards as _getAllLeaderboards, getLeaderboard as _getLeaderboard, updateLeaderboard as _updateLeaderboard, deleteLeaderboard as _deleteLeaderboard } from '../services/leaderboardService.js';
 
 async function createLeaderboard(req, res) {
     try {

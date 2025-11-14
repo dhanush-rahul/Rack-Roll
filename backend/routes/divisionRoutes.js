@@ -1,6 +1,6 @@
 import { Router } from 'express';
 const router = Router();
-import divisionController from '../controllers/divisionController';
+import divisionController from '../controllers/divisionController.js';
 
 router.post('/', divisionController.createDivision);
 router.get('/', divisionController.getAllDivisions);

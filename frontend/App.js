@@ -13,6 +13,8 @@ import Scoresheet from './src/screens/Scoresheet';
 import AddPlayerScreen from './src/screens/AddPlayerScreen';
 import PlayerScreen from './src/screens/PlayerScreen';
 import LoadingScreen from './src/screens/LodingScreen';
+import { StatusBar } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const Stack = createNativeStackNavigator();
 
@@ -52,20 +54,23 @@ export default function App() {
     };
 
     return (
+        <SafeAreaProvider>
+        <StatusBar barStyle="light-content" backgroundColor="#06100d" />
         <NavigationContainer theme={appTheme}>
-            <Stack.Navigator initialRouteName={isLoggedIn ? 'Tournament' : 'HomeScreen'}>
+            <Stack.Navigator initialRouteName={isLoggedIn ? 'Tournament' : 'HomeScreen'} screenOptions={{ headerShown: false }}>
                 {/* Auth Screens */}
-                <Stack.Screen name="Signin" options={{title: 'Sign In'}} component={SigninScreen} />
-                <Stack.Screen name="CreateAccount" options={{title: 'Create Account'}} component={CreateAccountScreen} />
+                <Stack.Screen name="Signin" options={{title: 'Sign In', headerShown: false}} component={SigninScreen} />
+                <Stack.Screen name="CreateAccount" options={{title: 'Create Account', headerShown: false}} component={CreateAccountScreen} />
 
                 {/* Main Screens */}
-                <Stack.Screen name="HomeScreen" options={{title: 'Rack-N-Roll'}} component={HomeScreen} />
-                <Stack.Screen name="Tournament" options={{title: 'Tournaments'}} component={TournamentScreen} />
-                <Stack.Screen name="CreateTournament" options={{title: 'Create a Tournament'}} component={CreateTournamentScreen} />
-                <Stack.Screen name="Player" options={{title: 'Manage Players'}} component={PlayerScreen} />
-                <Stack.Screen name="AddPlayers" options={{title: 'Add Players'}} component={AddPlayerScreen} />
-                <Stack.Screen name="Scoresheet" options={{title: 'Scoresheet'}} component={Scoresheet} />
+                <Stack.Screen name="HomeScreen" options={{title: 'Rack-N-Roll', headerShown: false}} component={HomeScreen} />
+                <Stack.Screen name="Tournament" options={{title: 'Tournaments', headerShown: false}} component={TournamentScreen} />
+                <Stack.Screen name="CreateTournament" options={{title: 'Create a Tournament', headerShown: false}} component={CreateTournamentScreen} />
+                <Stack.Screen name="Player" options={{title: 'Manage Players', headerShown: false}} component={PlayerScreen} />
+                <Stack.Screen name="AddPlayers" options={{title: 'Add Players', headerShown: false}} component={AddPlayerScreen} />
+                <Stack.Screen name="Scoresheet" options={{title: 'Scoresheet', headerShown: false}} component={Scoresheet} />
             </Stack.Navigator>
         </NavigationContainer>
+        </SafeAreaProvider>
     );
 }

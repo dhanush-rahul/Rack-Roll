@@ -1,15 +1,8 @@
-import mongoose from 'mongoose';
+import { createLocation as _createLocation, getLocationByEmail, getAllLocations as _getAllLocations, getLocationByCredentials as _getLocationByCredentials, updateLocation as _updateLocation, deleteLocation as _deleteLocation } from '../services/locationService.js';
+import Player from '../models/Player.js';
 
-import Game from '../models/Game';
-import Location from '../models/Location';
-import { createLocation as _createLocation, getLocationByEmail, getAllLocations as _getAllLocations, getLocationByCredentials as _getLocationByCredentials, updateLocation as _updateLocation, deleteLocation as _deleteLocation } from '../services/locationService';
-import { find } from '../models/Player';
-
-import { sign } from 'jsonwebtoken';
-
-if(process.env.NODE_ENV !== 'production'){
-    require('dotenv').config();
-}
+import jwtPkg from 'jsonwebtoken';
+const { sign } = jwtPkg;
 
 async function createLocation(req, res) {
     try {
@@ -80,7 +73,7 @@ async function getPlayersByLocation(req, res) {
         }
 
         // Fetch players based on location
-        const players = await find({ location: locationId })
+    const players = await Player.find({ location: locationId })
             .select('name handicap') // Select only necessary fields
             .lean();
 

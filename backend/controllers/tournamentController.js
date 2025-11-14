@@ -1,9 +1,9 @@
-import { countDocuments, findById } from '../models/Tournament';
-import { createTournament as _createTournament, getAllTournaments as _getAllTournaments, getTournamentsByLocationId, getTournamentById as _getTournamentById, updateTournament as _updateTournament, deleteTournament as _deleteTournament, countTournamentsByLocationId } from '../services/tournamentService';
-import { createGames, getGamesByTournament } from '../services/gameService';
-import { createDivision } from '../services/divisionService';
-import { findById as _findById } from '../models/Location';
-import { insertMany } from '../models/Game';
+import Tournament from '../models/Tournament.js';
+import { createTournament as _createTournament, getAllTournaments as _getAllTournaments, getTournamentsByLocationId, getTournamentById as _getTournamentById, updateTournament as _updateTournament, deleteTournament as _deleteTournament, countTournamentsByLocationId } from '../services/tournamentService.js';
+import { createGames, getGamesByTournament } from '../services/gameService.js';
+import { createDivision } from '../services/divisionService.js';
+import Location from '../models/Location.js';
+import Game from '../models/Game.js';
 
 async function createTournament(req, res) {
     try {
@@ -75,7 +75,7 @@ async function deleteTournament(req, res) {
 async function getLocationTournamentCount(req, res) {
     try {
         const locationId = req.params.locationId;
-        const count = await countDocuments({ locationId });
+    const count = await Tournament.countDocuments({ locationId });
         return res.status(200).json({ count: count || 0 });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -86,7 +86,7 @@ async function addPlayerToTournament(req, res) {
     try {
         const { tournamentId } = req.params;
         const { playerId } = req.body;
-        const tournament = await findById(tournamentId);
+    const tournament = await Tournament.findById(tournamentId);
         if (!tournament) {
             return res.status(404).json({ message: 'Tournament not found' });
         }
@@ -147,7 +147,7 @@ async function createTournamentWithGames(req, res) {
 
         newTournament.games = savedGames.map((game) => game._id);
         await newTournament.save();
-        const location = await _findById(locationId);
+    const location = await Location.findById(locationId);
         if (!location) throw new Error('Location not found');
         location.tournaments.push(newTournament._id);
         await location.save();
@@ -258,7 +258,7 @@ async function getScoresheet(req, res) {
 async function getTournamentDetails(req, res) {
     try {
         const { id } = req.params;
-        const tournament = await findById(id)
+    const tournament = await Tournament.findById(id)
             .populate('players')
             .populate('games')
             .populate({
@@ -282,7 +282,7 @@ async function addRound(req, res) {
         const { divisionId, isCrossover } = req.body;
 
         // Fetch the tournament details
-        const tournament = await findById(tournamentId)
+    const tournament = await Tournament.findById(tournamentId)
             .populate('divisions')
             .populate('games');
 
@@ -337,14 +337,14 @@ async function addRound(req, res) {
         }
 
         // Save new games to the database
-        const savedGames = await insertMany(newGames);
+    const savedGames = await Game.insertMany(newGames);
 
         // Update tournament games
         tournament.games.push(...savedGames.map((game) => game._id));
         await tournament.save();
 
         // Respond with the updated tournament details
-        const updatedTournament = await findById(tournamentId)
+    const updatedTournament = await Tournament.findById(tournamentId)
             .populate('divisions')
             .populate('games');
         res.status(200).json({

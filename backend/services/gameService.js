@@ -1,5 +1,5 @@
-const Game = require('../models/Game').default;
-const { mongoose } = require('mongoose');
+import Game from '../models/Game.js';
+import { mongoose } from 'mongoose';
 
 // Create a new game
 async function createGame(gameData) {
@@ -51,7 +51,18 @@ async function getGamesByTournament(tournamentId) {
         throw new Error('Failed to fetch games for the tournament');
     }
 }
-module.exports = {
+export default {
+    createGame,
+    getAllGames,
+    getGameById,
+    updateGame,
+    deleteGame,
+    createGames,
+    getGamesByTournament
+};
+
+// Also provide named exports for convenience
+export {
     createGame,
     getAllGames,
     getGameById,

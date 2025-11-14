@@ -1,6 +1,6 @@
-const express = require('express');
-const router = express.Router();
-const tournamentController = require('../controllers/tournamentController').default;
+import { Router } from 'express';
+const router = Router();
+import tournamentController from '../controllers/tournamentController.js';
 
 router.post('/create-with-games', tournamentController.createTournamentWithGames);
 router.post('/', tournamentController.createTournament);
@@ -18,4 +18,4 @@ router.delete('/:id', tournamentController.deleteTournament);
 router.get('/count/location/:locationId', tournamentController.getLocationTournamentCount);
 router.post('/:tournamentId/players', tournamentController.addPlayerToTournament);
 
-module.exports = router;
+export default router;

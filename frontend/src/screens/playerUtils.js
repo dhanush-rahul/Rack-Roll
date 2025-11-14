@@ -1,11 +1,12 @@
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createPlayer, getAllPlayersOfLocation } from '../services/api';
+import { createPlayer, getAllPlayersOfLocation, getPlayers } from '../services/api';
 
 export const fetchPlayers = async (setAllPlayers, setFilteredPlayers) => {
     try {
         const locationId = await AsyncStorage.getItem('locationId');
-        const players = await getAllPlayersOfLocation(locationId);
+        // const players = await getAllPlayersOfLocation(locationId);
+        const players = await getPlayers();
         setAllPlayers(players);
         setFilteredPlayers(players);
     } catch (error) {

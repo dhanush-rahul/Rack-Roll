@@ -1,4 +1,4 @@
-import { createDivision as _createDivision, getAllDivisions as _getAllDivisions, getDivisionById as _getDivisionById, updateDivision as _updateDivision, deleteDivision as _deleteDivision } from '../services/divisionService';
+import { createDivision as _createDivision, getAllDivisions as _getAllDivisions, getDivisionById as _getDivisionById, updateDivision as _updateDivision, deleteDivision as _deleteDivision } from '../services/divisionService.js';
 
 // Create a new division
 async function createDivision(req, res) {

@@ -1,4 +1,4 @@
-import { createScoresheet as _createScoresheet, getAllScoresheets as _getAllScoresheets, getScoresheetById as _getScoresheetById, updateScoresheet as _updateScoresheet, deleteScoresheet as _deleteScoresheet } from '../services/scoresheetService';
+import { createScoresheet as _createScoresheet, getAllScoresheets as _getAllScoresheets, getScoresheetById as _getScoresheetById, updateScoresheet as _updateScoresheet, deleteScoresheet as _deleteScoresheet } from '../services/scoresheetService.js';
 
 async function createScoresheet(req, res) {
     try {

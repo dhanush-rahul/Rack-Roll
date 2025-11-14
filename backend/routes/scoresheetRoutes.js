@@ -1,6 +1,6 @@
 import { Router } from 'express';
 const router = Router();
-import scoresheetController from '../controllers/scoresheetController';
+import scoresheetController from '../controllers/scoresheetController.js';
 
 router.post('/', scoresheetController.createScoresheet);
 router.get('/', scoresheetController.getAllScoresheets);

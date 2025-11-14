@@ -1,6 +1,6 @@
 import { Router } from 'express';
 const router = Router();
-import { getPlayersByLocation, searchPlayers, createPlayer, getAllPlayers, getPlayerById, updatePlayer, deletePlayer } from '../controllers/playerController';
+import { getPlayersByLocation, searchPlayers, createPlayer, getAllPlayers, getPlayerById, updatePlayer, deletePlayer } from '../controllers/playerController.js';
 
 router.get('/location', getPlayersByLocation);
 router.get('/search', searchPlayers);
