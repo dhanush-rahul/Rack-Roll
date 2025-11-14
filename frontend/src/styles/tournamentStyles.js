@@ -1,15 +1,17 @@
 import { StyleSheet, Dimensions } from 'react-native';
+import Colors from '../constants/Colors';
+
 const { width } = Dimensions.get('window');
 
 const tournamentStyles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0c1612',
+    backgroundColor: Colors.background,
   },
 
   container: {
     flex: 1,
-    backgroundColor: '#0c1612',
+    backgroundColor: Colors.background,
   },
 
   listContent: {
@@ -34,7 +36,7 @@ const tournamentStyles = StyleSheet.create({
   mainTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: Colors.textPrimary,
   },
 
   menuIcon: {
@@ -45,7 +47,7 @@ const tournamentStyles = StyleSheet.create({
 
   menuLine: {
     height: 2,
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.textPrimary,
     borderRadius: 1,
   },
 
@@ -55,7 +57,7 @@ const tournamentStyles = StyleSheet.create({
 
   subTitle: {
     fontSize: 16,
-    color: '#ccc',
+    color: Colors.textSecondary,
   },
 
   // CARD
@@ -63,47 +65,117 @@ const tournamentStyles = StyleSheet.create({
     marginBottom: 16,
   },
 
-  card: {
-    backgroundColor: '#182824',
-    borderRadius: 16,
-    overflow: 'hidden',
+  cardWrapperCompact: {
+    marginBottom: 16,
+    marginRight: 6, // Only reduce width from the right
   },
 
-  neonBorder: {
-    position: 'absolute',
-    top: -2,
-    left: -2,
-    right: -2,
-    bottom: -2,
-    borderWidth: 1.2,
-    borderColor: '#1fffac',
+  card: {
+    backgroundColor: Colors.cardBackground,
     borderRadius: 18,
-    opacity: 0.12,
+    overflow: 'hidden',
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+
+  accentStripe: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+    zIndex: 2,
+  },
+
+  neonGlow: {
+    position: 'absolute',
+    top: -1,
+    left: -1,
+    right: -1,
+    bottom: -1,
+    borderWidth: 1.5,
+    borderRadius: 16,
+    opacity: 0.4,
   },
 
   cardContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    padding: 16,
+    padding: 18,
+    paddingVertical: 20, // Much more vertical padding for tall cards
+    paddingLeft: 22, // Extra space for accent stripe
+  },
+
+  cardContentCompact: {
+    paddingVertical: 10, // Very compact
   },
 
   cardText: {
     flex: 1,
-    paddingRight: 10,
+    paddingRight: 12,
+    justifyContent: 'center',
+  },
+
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+
+  statusIcon: {
+    fontSize: 12,
+    marginRight: 8,
+    lineHeight: 12,
+  },
+
+  statusLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+
+  locationName: {
+    fontSize: 19,
+    fontWeight: '700',
+    color: Colors.neonGreen,
+    marginBottom: 5,
+    letterSpacing: 0.3,
   },
 
   cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 4,
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    marginBottom: 8,
+  },
+
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+
+  miniStat: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+  },
+
+  statDivider: {
+    fontSize: 13,
+    color: Colors.textMuted,
+    marginHorizontal: 8,
   },
 
   cardDate: {
-    fontSize: 14,
-    color: '#aaa',
-    marginBottom: 8,
+    fontSize: 12,
+    color: Colors.textMuted,
+    fontWeight: '400',
   },
 
   miniRow: {
@@ -113,16 +185,13 @@ const tournamentStyles = StyleSheet.create({
     gap: 12,
   },
 
-  miniStat: {
-    fontSize: 13,
-    color: '#ccc',
-  },
-
   cardImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 12,
-    backgroundColor: '#222',
+    width: 60,
+    height: 60,
+    borderRadius: 10,
+    backgroundColor: '#0f1814',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 255, 159, 0.2)',
   },
 
   // EXPANDED OVERLAY
@@ -147,9 +216,13 @@ const tournamentStyles = StyleSheet.create({
   expandedCard: {
     width: width - 48,
     borderRadius: 16,
-    backgroundColor: '#0c1612',
+    backgroundColor: Colors.cardBackground,
     overflow: 'hidden',
-    elevation: 6,
+    elevation: 12,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
   },
 
   expandedImage: {
@@ -164,13 +237,13 @@ const tournamentStyles = StyleSheet.create({
   expandedTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: Colors.textPrimary,
     marginBottom: 6,
   },
 
   expandedDate: {
     fontSize: 15,
-    color: '#aaa',
+    color: Colors.textSecondary,
     marginBottom: 10,
   },
 
@@ -181,13 +254,13 @@ const tournamentStyles = StyleSheet.create({
 
   statText: {
     fontSize: 14,
-    color: '#ccc',
+    color: Colors.textSecondary,
   },
 
   registerButton: {
     marginTop: 12,
     paddingVertical: 12,
-    backgroundColor: '#1fffac',
+    backgroundColor: Colors.neonGreen,
     borderRadius: 10,
     alignItems: 'center',
   },

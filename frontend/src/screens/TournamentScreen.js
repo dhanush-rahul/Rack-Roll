@@ -7,17 +7,19 @@ import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { getAllTournaments } from '../services/api';
-import CustomFloatingMenu from './CustomFloatingMenu';
 import HeaderSection from '../components/HeaderSection';
 import TournamentCard from '../components/TournamentCard';
 import ExpandedOverlay from '../components/ExpandedOverlay';
+import SlideMenu from '../components/SlideMenu';
 import tournamentStyles from '../styles/tournamentStyles';
 
 const TournamentsScreen = () => {
   const [tournaments, setTournaments] = useState([]);
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const openProgress = useSharedValue(0);
+  const menuContentSlide = useSharedValue(0); // For sliding content when menu opens
   const animationConfig = { duration: 360, easing: Easing.out(Easing.cubic) };
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -78,13 +80,11 @@ const TournamentsScreen = () => {
         <FlatList
           data={tournaments}
           keyExtractor={(item) => item._id.toString()}
-          renderItem={({ item }) => (
-            <View style={tournamentStyles.cardWrapper}>
-              <TournamentCard item={item} onPress={() => openFor(item)} />
-            </View>
+          renderItem={({ item, index }) => (
+            <TournamentCard item={item} index={index} onPress={() => openFor(item)} />
           )}
           contentContainerStyle={tournamentStyles.listContent}
-          ListHeaderComponent={<HeaderSection />}
+          ListHeaderComponent={<HeaderSection onMenuPress={() => setIsMenuOpen(true)} menuAnimation={menuContentSlide} />}
           showsVerticalScrollIndicator={false}
         />
 
@@ -94,9 +94,13 @@ const TournamentsScreen = () => {
           centeredCardStyle={centeredCardStyle}
           closeOverlay={closeOverlay}
         />
-
-        <CustomFloatingMenu />
       </View>
+
+      <SlideMenu 
+        isOpen={isMenuOpen} 
+        onClose={() => setIsMenuOpen(false)} 
+        contentAnimation={menuContentSlide}
+      />
     </SafeAreaView>
   );
 };
